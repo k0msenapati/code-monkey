@@ -33,7 +33,6 @@ export function ChatInterface() {
   const [codeInput, setCodeInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  // Mock AI response generator
   const generateAIResponse = (message: string, code?: string): string => {
     if (code) {
       return `I've analyzed your code. Here's what I found:
@@ -73,7 +72,6 @@ Would you like me to explain any specific part in more detail?`
     setMessages((prev) => [...prev, userMessage])
     setIsLoading(true)
 
-    // Simulate AI response delay
     setTimeout(() => {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),

@@ -240,7 +240,6 @@ export function RoadmapManager() {
 
     setGeneratingRoadmap(true)
 
-    // Simulate AI generating a roadmap
     setTimeout(() => {
       const newRoadmap: Roadmap = {
         id: Date.now().toString(),

@@ -27,7 +27,6 @@ type Roadmap = {
   created: Date
 }
 
-// Mock roadmap data
 const getMockRoadmap = (id: string): Roadmap => {
   return {
     id,
@@ -130,7 +129,6 @@ export default function RoadmapDetailPage({ params }: { params: { id: string } }
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null)
 
   useEffect(() => {
-    // In a real app, you would fetch the roadmap data from an API
     const roadmapData = getMockRoadmap(params.id)
     setRoadmap(roadmapData)
   }, [params.id])

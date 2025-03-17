@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, CheckCircle, XCircle, HelpCircle, ArrowRight, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,91 +9,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
+import { useQuizStore } from "@/store/quizStore"
+import { Quiz, Question } from "@/store/quizStore"
 
-type Question = {
-  id: string
-  text: string
-  options: { id: string; text: string }[]
-  correctAnswer: string
-  explanation: string
-}
-
-type Quiz = {
-  id: string
-  title: string
-  description: string
-  category: string
-  difficulty: "beginner" | "intermediate" | "advanced"
-  questions: Question[]
-}
-
-// Mock quiz data
-const getMockQuiz = (id: string): Quiz => {
-  return {
-    id,
-    title: id === "1" ? "JavaScript Fundamentals" : "React Hooks Deep Dive",
-    description: id === "1" ? "Test your knowledge of JavaScript basics" : "Advanced questions about React hooks",
-    category: id === "1" ? "JavaScript" : "React",
-    difficulty: id === "1" ? "beginner" : "advanced",
-    questions: [
-      {
-        id: "q1",
-        text:
-          id === "1"
-            ? "What is the result of '2' + 2 in JavaScript?"
-            : "What hook would you use to perform side effects?",
-        options: [
-          { id: "a", text: id === "1" ? "4" : "useState" },
-          { id: "b", text: id === "1" ? "22" : "useEffect" },
-          { id: "c", text: id === "1" ? "Error" : "useContext" },
-          { id: "d", text: id === "1" ? "undefined" : "useReducer" },
-        ],
-        correctAnswer: id === "1" ? "b" : "b",
-        explanation:
-          id === "1"
-            ? "In JavaScript, when you use the + operator with a string and a number, the number is converted to a string and concatenated."
-            : "useEffect is used to perform side effects in function components, such as data fetching, subscriptions, or manually changing the DOM.",
-      },
-      {
-        id: "q2",
-        text:
-          id === "1"
-            ? "Which method adds an element to the end of an array?"
-            : "Which hook replaces componentDidMount and componentDidUpdate?",
-        options: [
-          { id: "a", text: id === "1" ? "push()" : "useMount()" },
-          { id: "b", text: id === "1" ? "pop()" : "useUpdate()" },
-          { id: "c", text: id === "1" ? "shift()" : "useEffect()" },
-          { id: "d", text: id === "1" ? "unshift()" : "useLayoutEffect()" },
-        ],
-        correctAnswer: id === "1" ? "a" : "c",
-        explanation:
-          id === "1"
-            ? "The push() method adds one or more elements to the end of an array and returns the new length of the array."
-            : "useEffect hook replaces lifecycle methods like componentDidMount and componentDidUpdate in class components.",
-      },
-      {
-        id: "q3",
-        text:
-          id === "1" ? "What does the === operator do?" : "What is the purpose of the dependency array in useEffect?",
-        options: [
-          { id: "a", text: id === "1" ? "Assigns a value" : "It's optional and has no purpose" },
-          { id: "b", text: id === "1" ? "Compares values only" : "To specify when the effect should run" },
-          { id: "c", text: id === "1" ? "Compares values and types" : "To store values between renders" },
-          { id: "d", text: id === "1" ? "Logical OR" : "To optimize performance" },
-        ],
-        correctAnswer: id === "1" ? "c" : "b",
-        explanation:
-          id === "1"
-            ? "The strict equality operator (===) checks whether its two operands are equal, returning a Boolean result. It returns true only if the operands are of the same type and have the same value."
-            : "The dependency array in useEffect specifies when the effect should run. If any value in the dependency array changes between renders, the effect will run again.",
-      },
-    ],
-  }
-}
-
-export default function QuizPlayPage({ params }: { params: { id: string } }) {
+export default function QuizPlayPage({ params }: {   params: Promise<{ id: string }> }) {
   const router = useRouter()
+  const quizId = params.then((p) => p.id)
+  
+  const { quizzes } = useQuizStore()
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({})
@@ -101,10 +24,17 @@ export default function QuizPlayPage({ params }: { params: { id: string } }) {
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false)
 
   useEffect(() => {
-    // In a real app, you would fetch the quiz data from an API
-    const quizData = getMockQuiz(params.id)
-    setQuiz(quizData)
-  }, [params.id])
+    const fetchQuiz = async () => {
+      const id = await quizId
+      const foundQuiz = quizzes.find(q => q.id === id)
+      if (foundQuiz) {
+        setQuiz(foundQuiz)
+      } else {
+        router.push('/dashboard/quizzes')
+      }
+    }
+    fetchQuiz()
+  }, [quizId, quizzes, router])
 
   if (!quiz) {
     return (
@@ -164,7 +94,7 @@ export default function QuizPlayPage({ params }: { params: { id: string } }) {
     return (
       <div className="container mx-auto p-6">
         <Button variant="ghost" className="mb-6" asChild>
-          <Link href="/quizzes">
+          <Link href="/dashboard/quizzes">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Quizzes
           </Link>
@@ -221,7 +151,7 @@ export default function QuizPlayPage({ params }: { params: { id: string } }) {
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button variant="outline" asChild>
-              <Link href="/quizzes">
+              <Link href="/dashboard/quizzes">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Quizzes
               </Link>
@@ -239,7 +169,7 @@ export default function QuizPlayPage({ params }: { params: { id: string } }) {
   return (
     <div className="container mx-auto p-6">
       <Button variant="ghost" className="mb-6" asChild>
-        <Link href="/quizzes">
+        <Link href="/dashboard/quizzes">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Quizzes
         </Link>

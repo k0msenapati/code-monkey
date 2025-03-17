@@ -1,85 +1,101 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Play, Copy, Share2, Save, FileCode, Terminal, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useToast } from "@/hooks/use-toast"
+import { useSnippetStore, Snippet } from "@/store/snippetStore"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { languages } from "@/lib/supported-languages"
+import { executeCode } from "@/lib/code-execution"
 
-const sampleCode = {
-  javascript: `// Fibonacci sequence generator
-function fibonacci(n) {
-  const result = [0, 1];
-  
-  for (let i = 2; i < n; i++) {
-    result[i] = result[i - 1] + result[i - 2];
+const getDefaultCode = (language: string): string => {
+  switch (language) {
+    case "javascript":
+      return "// JavaScript playground\n\nconsole.log('Hello, world!');\n";
+    case "python":
+      return "# Python playground\n\nprint('Hello, world!')\n";
+    case "typescript":
+      return "// TypeScript playground\n\nconst greet = (name: string): string => {\n  return `Hello, ${name}!`;\n};\n\nconsole.log(greet('world'));\n";
+    case "java":
+      return "// Java playground\n\npublic class Main {\n  public static void main(String[] args) {\n    System.out.println(\"Hello, world!\");\n  }\n}\n";
+    case "cpp":
+      return "// C++ playground\n\n#include <iostream>\n\nint main() {\n  std::cout << \"Hello, world!\" << std::endl;\n  return 0;\n}\n";
+    default:
+      return `// ${language} playground\n`;
   }
-  
-  return result.slice(0, n);
-}
-
-// Test the function
-console.log(fibonacci(10));`,
-
-  python: `# Fibonacci sequence generator
-def fibonacci(n):
-    result = [0, 1]
-    
-    for i in range(2, n):
-        result.append(result[i-1] + result[i-2])
-    
-    return result[:n]
-
-# Test the function
-print(fibonacci(10))`,
-
-  typescript: `// Fibonacci sequence generator
-function fibonacci(n: number): number[] {
-  const result: number[] = [0, 1];
-  
-  for (let i = 2; i < n; i++) {
-    result[i] = result[i - 1] + result[i - 2];
-  }
-  
-  return result.slice(0, n);
-}
-
-// Test the function
-console.log(fibonacci(10));`,
-}
+};
 
 export function CodeEditor() {
-  const [language, setLanguage] = useState<"javascript" | "python" | "typescript">("javascript")
-  const [code, setCode] = useState(sampleCode[language])
-  const [output, setOutput] = useState("")
-  const [isRunning, setIsRunning] = useState(false)
   const { toast } = useToast()
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [snippetTitle, setSnippetTitle] = useState("")
+  const [snippetDescription, setSnippetDescription] = useState("")
+  const [snippetTags, setSnippetTags] = useState("")
+  
+  const { 
+    code, 
+    language, 
+    output, 
+    isRunning,
+    updateCode,
+    updateLanguage,
+    setOutput,
+    setIsRunning,
+    clearOutput,
+    addSnippet 
+  } = useSnippetStore()
 
-  const handleLanguageChange = (value: "javascript" | "python" | "typescript") => {
-    setLanguage(value)
-    setCode(sampleCode[value])
-    setOutput("")
+  useEffect(() => {
+    if (!code || code === "// Write your code here\n\nconsole.log('Hello, world!');") {
+      updateCode(getDefaultCode(language))
+    }
+  }, [language, updateCode, code])
+
+  const handleLanguageChange = (value: string) => {
+    updateLanguage(value)
+    updateCode(getDefaultCode(value))
   }
 
-  const runCode = () => {
+  const handleRunCode = async () => {
+    if (!code.trim()) {
+      toast({
+        title: "No code to run",
+        description: "Please enter some code first",
+        variant: "destructive"
+      })
+      return
+    }
+    
     setIsRunning(true)
-    setOutput("")
-
-    // Simulate code execution
-    setTimeout(() => {
-      let result = ""
-
-      if (language === "javascript" || language === "typescript") {
-        result = "[0, 1, 1, 2, 3, 5, 8, 13, 21, 34]"
-      } else if (language === "python") {
-        result = "[0, 1, 1, 2, 3, 5, 8, 13, 21, 34]"
+    clearOutput()
+    
+    try {
+      const result = await executeCode(language, code)
+      
+      let formattedOutput = `> Running ${language} code...\n`
+      
+      if (result.success) {
+        formattedOutput += `> Execution completed in ${result.executionTime || "N/A"}s\n`
+        formattedOutput += `> Memory used: ${result.memory || "N/A"} KB\n\n`
+      } else {
+        formattedOutput += `> Execution failed\n\n`
       }
-
-      setOutput(`> Running ${language} code...\n> Finished in 0.12s\n\n${result}`)
+      
+      formattedOutput += result.output
+      
+      setOutput(formattedOutput)
+    } catch (error) {
+      setOutput(`Error: ${(error as Error).message}`)
+    } finally {
       setIsRunning(false)
-    }, 1200)
+    }
   }
 
   const copyCode = () => {
@@ -91,131 +107,204 @@ export function CodeEditor() {
   }
 
   const shareCode = () => {
-    // Simulate sharing functionality
     toast({
       title: "Share link created",
       description: "Anyone with the link can view this code",
     })
   }
 
-  const saveToSnippets = () => {
-    // Simulate saving to snippets
+  const openSaveDialog = () => {
+    setSnippetTitle("")
+    setSnippetDescription("")
+    setSnippetTags("")
+    setShowSaveDialog(true)
+  }
+
+  const handleSaveSnippet = () => {
+    if (!snippetTitle.trim()) {
+      toast({
+        title: "Title required",
+        description: "Please provide a title for your snippet",
+        variant: "destructive"
+      })
+      return
+    }
+
+    const newId = Date.now().toString()
+    
+    const newSnippet: Snippet = {
+      id: newId,
+      title: snippetTitle,
+      description: snippetDescription,
+      language: language,
+      code: code,
+      tags: snippetTags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
+      created: new Date()
+    }
+    
+    addSnippet(newSnippet)
+    
+    setShowSaveDialog(false)
     toast({
-      title: "Code saved",
+      title: "Snippet saved",
       description: "The code has been saved to your snippets",
     })
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-200px)]">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center space-x-2">
-          <Select value={language} onValueChange={(value: any) => handleLanguageChange(value)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Language" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="javascript">JavaScript</SelectItem>
-              <SelectItem value="python">Python</SelectItem>
-              <SelectItem value="typescript">TypeScript</SelectItem>
-            </SelectContent>
-          </Select>
+    <>
+      <div className="flex flex-col h-[calc(100vh-300px)]">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center space-x-2">
+            <Select value={language} onValueChange={handleLanguageChange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Language" />
+              </SelectTrigger>
+              <SelectContent>
+                {languages.map(lang => (
+                  <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" onClick={copyCode}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Copy code</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" onClick={shareCode}>
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Share code</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" onClick={openSaveDialog}>
+                    <Save className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Save as snippet</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
 
-        <div className="flex space-x-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" onClick={copyCode}>
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Copy code</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div className="grid gap-4 md:grid-cols-2 flex-1">
+          <Card className="flex flex-col">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center">
+                <FileCode className="h-4 w-4 mr-2" />
+                Editor
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 p-0">
+              <textarea
+                value={code}
+                onChange={(e) => updateCode(e.target.value)}
+                className="w-full h-full min-h-[400px] p-4 font-mono text-sm bg-background resize-none focus:outline-none border-0"
+              />
+            </CardContent>
+            <CardFooter className="border-t">
+              <Button onClick={handleRunCode} disabled={isRunning} className="ml-auto">
+                {isRunning ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Running...
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 mr-2" />
+                    Run
+                  </>
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" onClick={shareCode}>
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Share code</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" onClick={saveToSnippets}>
-                  <Save className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Save to snippets</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Card className="flex flex-col">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center">
+                <Terminal className="h-4 w-4 mr-2" />
+                Output
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 p-0">
+              <pre className="w-full h-full min-h-[400px] p-4 font-mono text-sm bg-black text-green-400 overflow-auto">
+                {output || "> Code output will appear here..."}
+              </pre>
+            </CardContent>
+            <CardFooter className="border-t">
+              <Button variant="outline" size="sm" onClick={clearOutput} className="ml-auto" disabled={!output}>
+                Clear
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 flex-1">
-        <Card className="flex flex-col">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center">
-              <FileCode className="h-4 w-4 mr-2" />
-              Editor
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 p-0">
-            <textarea
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="w-full h-full min-h-[400px] p-4 font-mono text-sm bg-background resize-none focus:outline-none border-0"
-            />
-          </CardContent>
-          <CardFooter className="border-t">
-            <Button onClick={runCode} disabled={isRunning} className="ml-auto">
-              {isRunning ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Running...
-                </>
-              ) : (
-                <>
-                  <Play className="h-4 w-4 mr-2" />
-                  Run
-                </>
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
-
-        <Card className="flex flex-col">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center">
-              <Terminal className="h-4 w-4 mr-2" />
-              Output
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 p-0">
-            <pre className="w-full h-full min-h-[400px] p-4 font-mono text-sm bg-black text-green-400 overflow-auto">
-              {output || "> Code output will appear here..."}
-            </pre>
-          </CardContent>
-          <CardFooter className="border-t">
-            <Button variant="outline" size="sm" onClick={() => setOutput("")} className="ml-auto" disabled={!output}>
-              Clear
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-    </div>
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Save Code Snippet</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={snippetTitle}
+                onChange={(e) => setSnippetTitle(e.target.value)}
+                placeholder="Enter a title for your snippet"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={snippetDescription}
+                onChange={(e) => setSnippetDescription(e.target.value)}
+                placeholder="Describe what this code does"
+                className="resize-none"
+                rows={3}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="tags">Tags (comma separated)</Label>
+              <Input
+                id="tags"
+                value={snippetTags}
+                onChange={(e) => setSnippetTags(e.target.value)}
+                placeholder="javascript, function, algorithm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>Cancel</Button>
+            <Button onClick={handleSaveSnippet}>Save Snippet</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
-

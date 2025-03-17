@@ -32,7 +32,6 @@ export function Navbar() {
           <span className="text-xl font-bold text-primary">CodeMonkey</span>
         </Link>
 
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
           <Link href="#features" className="text-foreground/80 hover:text-primary transition-colors cursor-pointer hover:underline">
             Features
@@ -59,7 +58,6 @@ export function Navbar() {
           </Link>
         </div>
 
-        {/* Mobile Menu Button */}
         <div className="flex md:hidden items-center gap-2">
           <ThemeSwitch />
           <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -68,7 +66,6 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-background border-b shadow-md">
           <div className="container mx-auto px-4 py-4 flex flex-col gap-4">

@@ -1,0 +1,143 @@
+lockdown-install.js:1 Removing unpermitted intrinsics
+quiz-generation.ts:87 JSON parsing error: SyntaxError: Expected ',' or '}' after property value in JSON at position 3419 (line 78 column 19)
+    at JSON.parse (<anonymous>)
+    at generateQuizWithAI (quiz-generation.ts:85:23)
+    at async handleGenerateQuiz (quiz-manager.tsx:134:20)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:51
+generateQuizWithAI @ quiz-generation.ts:87
+quiz-generation.ts:88 Raw JSON text: {
+  "title": "React Hooks Intermediate Quiz",
+  "description": "Test your knowledge of intermediate React Hooks concepts.",
+  "category": "React",
+  "difficulty": "intermediate",
+  "questions": [
+    {
+      "text": "What is the primary purpose of the `useEffect` hook?",
+      "options": [
+        {"id": "a", "text": "To perform side effects like data fetching or DOM manipulation"},
+        {"id": "b", "text": "To manage component state"},
+        {"id": "c", "text": "To conditionally render components"},
+        {"id": "d", "text": "To define functional components"}
+      ],
+      "correctAnswer": "a",
+      "explanation": "`useEffect` is specifically designed for handling side effects that occur outside of the component's rendering process."
+    },
+    {
+      "text": "Which hook is used to access and update state within a functional component?",
+      "options": [
+        {"id": "a", "text": "`useEffect`"},
+        {"id": "b", "text": "`useState`"},
+        {"id": "c", "text": "`useContext`"},
+        {"id": "d", "text": "`useRef`"}
+      ],
+      "correctAnswer": "b",
+      "explanation": "`useState` is the fundamental hook for managing state in functional components."
+    },
+    {
+      "text": "How do you prevent infinite loops with `useEffect`?",
+      "options": [
+        {"id": "a", "text": "Using `setTimeout`"},
+        {"id": "b", "text": "Using the second argument (dependency array)"},
+        {"id": "c", "text": "Using `setInterval`"},
+        {"id": "d", "text": "It's not possible to prevent infinite loops"}
+      ],
+      "correctAnswer": "b",
+      "explanation": "The dependency array controls when the effect runs.  An empty array means it only runs once after the initial render, preventing infinite loops."
+    },
+    {
+      "text": "What does the `useRef` hook return?",
+      "options": [
+        {"id": "a", "text": "A mutable object"},
+        {"id": "b", "text": "A state variable"},
+        {"id": "c", "text": "A function"},
+        {"id": "d", "text": "A mutable object with a `.current` property"}
+      ],
+      "correctAnswer": "d",
+      "explanation": "`useRef` returns a mutable object whose `.current` property can be used to store values that don't trigger re-renders."
+    },
+    {
+      "text": "What hook is best suited for accessing values from React Context?",
+      "options": [
+        {"id": "a", "text": "`useState`"},
+        {"id": "b", "text": "`useContext`"},
+        {"id": "c", "text": "`useReducer`"},
+        {"id": "d", "text": "`useCallback`"}
+      ],
+      "correctAnswer": "b",
+      "explanation": "`useContext` provides a convenient way to subscribe to and read values from the React Context API."
+    },
+    {
+      "text": "When should you use `useCallback`?",
+      "options": [
+        {"id": "a", "text": "To memoize a function"},
+        {"id": "b", "text": "To manage component state"},
+        {"id": "c", "text": "To perform side effects"},
+        {"id": "d", "text": "To create custom hooks"}
+      ],
+      "correctAnswer": "a",
+      "explanation": "`useCallback` memoizes a function, preventing re-creation on every render if its dependencies haven't changed, optimizing performance."
+    },
+    {
+      "text": "What is the purpose of `useReducer`?",
+      "options": [
+        {"id": "a", "text": "To manage complex state logic"},
+        {"id": "b", "text": "To perform asynchronous operations"},
+        {"id": "c": "To memoize functions"},
+        {"id": "d": "To access context values"}
+      ],
+      "correctAnswer": "a",
+      "explanation": "`useReducer` is ideal for managing complex state logic that involves multiple state updates or state transitions."
+    },
+    {
+      "text": "Which hook allows you to run code after every render?",
+      "options": [
+        {"id": "a", "text": "`useState`"},
+        {"id": "b", "text": "`useMemo`"},
+        {"id": "c", "text": "`useEffect`"},
+        {"id": "d", "text": "`useCallback`"}
+      ],
+      "correctAnswer": "c",
+      "explanation": "`useEffect` runs after every render, unless a dependency array is specified."
+    },
+    {
+      "text": "What does `useMemo` do?",
+      "options": [
+        {"id": "a", "text": "Memoizes a value based on dependencies"},
+        {"id": "b": "Memoizes a function based on dependencies"},
+        {"id": "c": "Performs side effects"},
+        {"id": "d": "Manages component state"}
+      ],
+      "correctAnswer": "a",
+      "explanation": "`useMemo` memoizes the result of an expensive computation, returning a cached value if the dependencies haven't changed."
+    },
+    {
+      "text": "What is a Custom Hook?",
+      "options":[
+        {"id": "a", "text": "A hook provided by React"},
+        {"id": "b", "text": "A function that uses other hooks"},
+        {"id": "c", "text": "A component that renders other components"},
+        {"id": "d", "text": "A class component that uses hooks"}
+      ],
+      "correctAnswer": "b",
+      "explanation": "Custom hooks are functions that call other hooks to extract reusable logic and share it among components."
+    }
+  ]
+}
+```
+
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:51
+generateQuizWithAI @ quiz-generation.ts:88
+quiz-generation.ts:132 Quiz generation error: Error: Failed to parse the AI response as valid JSON
+    at generateQuizWithAI (quiz-generation.ts:96:17)
+    at async handleGenerateQuiz (quiz-manager.tsx:134:20)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:51
+generateQuizWithAI @ quiz-generation.ts:132
+quiz-manager.tsx:153 Quiz generation error: Error: Failed to generate quiz: Failed to parse the AI response as valid JSON
+    at generateQuizWithAI (quiz-generation.ts:133:11)
+    at async handleGenerateQuiz (quiz-manager.tsx:134:20)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:51
+handleGenerateQuiz @ quiz-manager.tsx:153

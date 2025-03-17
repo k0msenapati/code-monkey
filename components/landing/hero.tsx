@@ -17,7 +17,6 @@ export function Hero() {
 
   return (
     <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
-      {/* Background gradient */}
       <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
       <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-br from-primary/20 via-background to-background pointer-events-none" />
 
@@ -70,7 +69,6 @@ export function Hero() {
           </motion.div>
         </motion.div>
 
-        {/* Animated dashboard preview */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -93,7 +91,6 @@ export function Hero() {
               </div>
             </div>
             <div className="grid grid-cols-5 h-[400px] md:h-[500px]">
-              {/* Sidebar */}
               <div className="col-span-1 border-r p-4 hidden md:block">
                 <div className="flex items-center gap-2 mb-6">
                   <div className="h-6 w-6 rounded-md bg-primary" />
@@ -115,7 +112,6 @@ export function Hero() {
                 </div>
               </div>
 
-              {/* Main content */}
               <div className="col-span-5 md:col-span-4 p-6 overflow-hidden">
                 <motion.div
                   initial={{ opacity: 0 }}

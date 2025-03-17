@@ -11,7 +11,6 @@ export function Footer() {
         
         <div className='rounded-full w-full h-[1px] bg-zinc-300 dark:bg-zinc-800' />
         
-        {/* Logo with Animation */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -20,7 +19,6 @@ export function Footer() {
           <BrainCircuit className="w-12 h-12 text-primary" />
         </motion.div>
 
-        {/* Text */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -30,7 +28,6 @@ export function Footer() {
           © {new Date().getFullYear()} Codemonkey. Built for hackers, by hackers.
         </motion.p>
 
-        {/* Social Links */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

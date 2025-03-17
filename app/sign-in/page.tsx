@@ -11,10 +11,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function SignInPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { login } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     username: "",
@@ -26,27 +28,25 @@ export default function SignInPage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate authentication delay
-    setTimeout(() => {
-      if (formData.username === "admin" && formData.password === "12345") {
-        toast({
-          title: "Sign in successful",
-          description: "Welcome back to CodeMonkey!",
-        })
-        router.push("/dashboard")
-      } else {
-        toast({
-          title: "Authentication failed",
-          description: "Invalid username or password. Try admin/12345",
-          variant: "destructive",
-        })
-        setIsLoading(false)
-      }
-    }, 1500)
+    try {
+      const user = await login(formData.username, formData.password)
+      toast({
+        title: "Sign in successful",
+        description: `Welcome back, ${user.name}!`,
+      })
+      router.push("/dashboard")
+    } catch (error) {
+      toast({
+        title: "Authentication failed",
+        description: "Invalid username or password. Try admin/12345",
+        variant: "destructive",
+      })
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -99,8 +99,13 @@ export default function SignInPage() {
               />
             </div>
             <div className="text-sm text-muted-foreground">
-              Hint: Use username <span className="font-mono bg-muted px-1 rounded">admin</span> and password{" "}
-              <span className="font-mono bg-muted px-1 rounded">12345</span>
+              Available accounts:
+              <ul className="mt-1 space-y-1">
+                <li><span className="font-mono bg-muted px-1 rounded">admin</span> (Premium)</li>
+                <li><span className="font-mono bg-muted px-1 rounded">dev1</span> (Premium)</li>
+                <li><span className="font-mono bg-muted px-1 rounded">user</span> (Free)</li>
+              </ul>
+              <p className="mt-1">All passwords: <span className="font-mono bg-muted px-1 rounded">12345</span></p>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">

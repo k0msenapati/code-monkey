@@ -1,3 +1,5 @@
+"use client"
+
 import { SnippetsManager } from "@/components/dashboard/snippets-manager"
 
 export default function SnippetsPage() {
