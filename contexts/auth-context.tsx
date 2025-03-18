@@ -4,7 +4,6 @@ import React, { createContext, useContext, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { setCookie, getCookie, deleteCookie } from 'cookies-next'
 
-// User interface with premium flag
 export interface User {
   id: string
   username: string
@@ -41,7 +40,6 @@ const USERS_DB: User[] = [
   }
 ]
 
-// Password map for all users
 const PASSWORD_MAP: Record<string, string> = {
   "admin": "12345",
   "dev1": "12345",
@@ -68,7 +66,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   
   useEffect(() => {
-    // Try to get user from cookie instead of localStorage
     const userFromCookie = getCookie('currentUser')
     
     if (userFromCookie) {
@@ -87,16 +84,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return new Promise((resolve, reject) => {
       setIsLoading(true)
       
-      // Simulate API delay
       setTimeout(() => {
         const foundUser = USERS_DB.find(u => u.username === username)
         const correctPassword = PASSWORD_MAP[username]
         
         if (foundUser && password === correctPassword) {
           setUser(foundUser)
-          // Store in cookie instead of localStorage
           setCookie('currentUser', JSON.stringify(foundUser), {
-            maxAge: 60 * 60 * 24 * 7, // 1 week
+            maxAge: 60 * 60 * 24 * 7,
             path: '/',
           })
           setIsLoading(false)

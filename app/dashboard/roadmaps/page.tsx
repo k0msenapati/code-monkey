@@ -15,7 +15,6 @@ export default function RoadmapsPage() {
   const router = useRouter()
   
   useEffect(() => {
-    // Clear active roadmap when viewing the list
     setActiveRoadmap(null)
   }, [setActiveRoadmap])
 

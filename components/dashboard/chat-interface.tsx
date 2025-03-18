@@ -39,7 +39,6 @@ export function ChatInterface() {
   const [selectedLanguage, setSelectedLanguage] = useState("javascript")
   const messageEndRef = useRef<HTMLDivElement>(null)
 
-  // Initialize the store once when the component mounts
   useEffect(() => {
     initializeStore()
   }, [initializeStore])
@@ -50,7 +49,6 @@ export function ChatInterface() {
   const handleSendMessage = async () => {
     if (!message.trim()) return
     
-    // Ensure we have an active session
     const sessionId = activeSessionId || createSession()
     
     const userMessage: ChatMessage = { role: 'user', content: message }
@@ -58,13 +56,11 @@ export function ChatInterface() {
     setMessage("")
     setIsLoading(true)
     
-    // Scroll to bottom
     setTimeout(() => {
       messageEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, 100)
     
     try {
-      // For system context/instructions
       const systemContext = "You are a helpful AI assistant specialized in programming and software development."
       
       const allMessages = [
@@ -76,7 +72,6 @@ export function ChatInterface() {
       const aiResponse = await chatWithAI(allMessages)
       addMessage(sessionId, { role: 'assistant', content: aiResponse })
       
-      // Scroll to bottom after response
       setTimeout(() => {
         messageEndRef.current?.scrollIntoView({ behavior: 'smooth' })
       }, 100)
@@ -113,7 +108,6 @@ export function ChatInterface() {
 
     const formattedCode = `\`\`\`${selectedLanguage}\n${codeInput}\n\`\`\``;
     
-    // If there is existing message content, add the code with proper spacing
     if (message.trim()) {
       setMessage(prev => `${prev}\n\n${formattedCode}`)
     } else {
@@ -124,18 +118,14 @@ export function ChatInterface() {
     setCodeDialogOpen(false)
   }
 
-  // Function to render message content with code blocks properly formatted
   const renderMessageContent = (content: string) => {
-    // Regular expression to match markdown code blocks
     const codeBlockRegex = /```([a-z]*)\n([\s\S]*?)```/g;
     
-    // Split the content by code blocks
     const parts = [];
     let lastIndex = 0;
     let match;
     
     while ((match = codeBlockRegex.exec(content)) !== null) {
-      // Add text before the code block
       if (match.index > lastIndex) {
         parts.push({
           type: 'text',
@@ -143,7 +133,6 @@ export function ChatInterface() {
         });
       }
       
-      // Add the code block
       const language = match[1] || 'plaintext';
       const code = match[2];
       parts.push({
@@ -155,7 +144,6 @@ export function ChatInterface() {
       lastIndex = match.index + match[0].length;
     }
     
-    // Add any remaining text after the last code block
     if (lastIndex < content.length) {
       parts.push({
         type: 'text',
@@ -163,12 +151,10 @@ export function ChatInterface() {
       });
     }
     
-    // If no code blocks were found, just return the content as is
     if (parts.length === 0) {
       return <p className="whitespace-pre-wrap">{content}</p>;
     }
     
-    // Render the parts
     return (
       <div className="space-y-3">
         {parts.map((part, index) => {
@@ -193,7 +179,6 @@ export function ChatInterface() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      {/* Chat Sessions Sidebar */}
       <div className="md:col-span-1 space-y-4">
         <Button 
           variant="outline" 
@@ -265,7 +250,6 @@ export function ChatInterface() {
         </ScrollArea>
       </div>
       
-      {/* Chat Interface */}
       <div className="md:col-span-3">
         <Card>
           <CardHeader>

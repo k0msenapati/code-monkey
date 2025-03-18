@@ -1,6 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Initialize the Gemini API
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
@@ -28,7 +27,6 @@ export async function generateRoadmap(topic: string): Promise<any> {
     const response = await result.response;
     const text = response.text();
     
-    // Extract JSON from the response
     const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || 
                      text.match(/```\n([\s\S]*?)\n```/) || 
                      text.match(/\{[\s\S]*\}/);
@@ -37,7 +35,6 @@ export async function generateRoadmap(topic: string): Promise<any> {
       const jsonStr = jsonMatch[1] || jsonMatch[0];
       const roadmapData = JSON.parse(jsonStr);
       
-      // Process the response to match our data structure
       const formattedRoadmap = {
         id: Date.now().toString(),
         title: roadmapData.title,

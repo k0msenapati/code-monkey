@@ -9,8 +9,8 @@ export type Snippet = {
   code: string
   tags: string[]
   created: Date
-  favorite?: boolean  // Adding favorite flag
-  folder?: string     // Adding folder organization
+  favorite?: boolean
+  folder?: string
 }
 
 interface SnippetState {

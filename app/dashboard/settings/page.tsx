@@ -24,7 +24,6 @@ export default function SettingsPage() {
     setTheme(value)
   }
 
-  // Format date to be more readable
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', { 

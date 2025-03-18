@@ -56,7 +56,6 @@ export default function RoadmapDetailPage({ params }: { params: Promise<{ id: st
     setIsLoading(true)
     
     try {
-      // Add context about the roadmap to help the AI give better responses
       const roadmapContext = `This is regarding a roadmap titled "${activeRoadmap.title}" about "${activeRoadmap.description}". It has ${activeRoadmap.steps.length} steps: ${activeRoadmap.steps.map(s => s.title).join(", ")}.`
       
       const allMessages = [

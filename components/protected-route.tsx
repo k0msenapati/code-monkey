@@ -31,6 +31,5 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return null
   }
 
-  // If authenticated, render children
   return <>{children}</>
 }

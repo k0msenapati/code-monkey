@@ -18,7 +18,7 @@ interface ChatState {
   sessions: ChatSession[];
   activeSessionId: string | null;
   isLoading: boolean;
-  initialized: boolean; // Track if we've already initialized
+  initialized: boolean;
   
   createSession: (autoActivate?: boolean) => string;
   setActiveSession: (id: string) => void;
@@ -26,7 +26,7 @@ interface ChatState {
   deleteSession: (id: string) => void;
   addMessage: (id: string, message: ChatMessage) => void;
   setIsLoading: (isLoading: boolean) => void;
-  initializeStore: () => void; // Add new function to initialize the store once
+  initializeStore: () => void;
 }
 
 const DEFAULT_TITLE = "New conversation";
@@ -43,12 +43,10 @@ export const useChatStore = create<ChatState>()(
         const { initialized, sessions } = get();
         
         if (!initialized) {
-          // Only create a default session if there are no sessions yet
           if (sessions.length === 0) {
             const id = get().createSession(false);
             set({ activeSessionId: id, initialized: true });
           } else {
-            // Just mark as initialized
             set({ initialized: true });
           }
         }
@@ -101,13 +99,11 @@ export const useChatStore = create<ChatState>()(
       
       addMessage: (id, message) => {
         set((state) => {
-          // Auto-rename session based on first user message if still using default title
           let sessionsToUpdate = state.sessions.map((session) => {
             if (session.id === id) {
               const newMessages = [...session.messages, message];
               let title = session.title;
               
-              // Auto-rename session based on first user message if still using default title
               if (session.title === DEFAULT_TITLE && message.role === 'user' && newMessages.filter(m => m.role === 'user').length === 1) {
                 title = message.content.length > 30 
                   ? `${message.content.substring(0, 30)}...` 
