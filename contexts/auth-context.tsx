@@ -3,6 +3,10 @@
 import React, { createContext, useContext, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { setCookie, getCookie, deleteCookie } from 'cookies-next'
+import { useSnippetStore } from "@/store/snippetStore"
+import { useChatStore } from "@/store/chatStore"
+import { useRoadmapStore } from "@/store/roadmapStore"
+import { useQuizStore } from "@/store/quizStore"
 
 export interface User {
   id: string
@@ -105,6 +109,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = () => {
+    useSnippetStore.getState().reset();
+    useChatStore.getState().reset();
+    useRoadmapStore.getState().reset();
+    useQuizStore.getState().reset();
+    
+    localStorage.removeItem('snippet-storage');
+    localStorage.removeItem('chat-storage');
+    localStorage.removeItem('roadmap-storage');
+    localStorage.removeItem('quiz-storage');
+    
     setUser(null)
     deleteCookie('currentUser')
     router.push('/sign-in')

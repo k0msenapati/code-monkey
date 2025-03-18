@@ -27,6 +27,7 @@ interface ChatState {
   addMessage: (id: string, message: ChatMessage) => void;
   setIsLoading: (isLoading: boolean) => void;
   initializeStore: () => void;
+  reset: () => void;
 }
 
 const DEFAULT_TITLE = "New conversation";
@@ -127,6 +128,13 @@ export const useChatStore = create<ChatState>()(
       },
       
       setIsLoading: (isLoading) => set({ isLoading }),
+      
+      reset: () => set(() => ({
+        sessions: [],
+        activeSessionId: null,
+        isLoading: false,
+        initialized: false
+      })),
     }),
     {
       name: 'chat-storage',

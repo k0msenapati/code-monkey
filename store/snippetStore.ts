@@ -31,6 +31,7 @@ interface SnippetState {
   setOutput: (output: string) => void
   setIsRunning: (isRunning: boolean) => void
   clearOutput: () => void
+  reset: () => void
 }
 
 export const useSnippetStore = create<SnippetState>()(
@@ -103,7 +104,13 @@ export const useSnippetStore = create<SnippetState>()(
       
       setIsRunning: (isRunning) => set({ isRunning }),
       
-      clearOutput: () => set({ output: "" })
+      clearOutput: () => set({ output: "" }),
+
+      reset: () => set(() => ({
+        snippets: [],
+        activeSnippet: null,
+        code: "// Write your code here\n\nconsole.log('Hello, world!');",
+      }))
     }),
     {
       name: "snippet-storage",

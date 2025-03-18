@@ -35,6 +35,7 @@ interface RoadmapState {
   toggleStepCompletion: (roadmapId: string, stepId: string) => void;
   setIsGenerating: (isGenerating: boolean) => void;
   addChatMessage: (roadmapId: string, message: { role: 'user' | 'assistant'; content: string }) => void;
+  reset: () => void;
 }
 
 const customStorage = {
@@ -133,7 +134,14 @@ export const useRoadmapStore = create<RoadmapState>()(
             }]
           };
         }
-      })
+      }),
+      
+      reset: () => set(() => ({
+        roadmaps: [],
+        activeRoadmap: null,
+        isGenerating: false,
+        chatHistory: []
+      })),
     }),
     {
       name: 'roadmap-storage',

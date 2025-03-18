@@ -52,6 +52,7 @@ interface QuizState {
   setActiveQuiz: (quiz: Quiz | null) => void;
   saveResult: (result: QuizResult) => void;
   setIsGenerating: (isGenerating: boolean) => void;
+  reset: () => void;
 }
 
 const customStorage = {
@@ -117,7 +118,14 @@ export const useQuizStore = create<QuizState>()(
         };
       }),
       
-      setIsGenerating: (isGenerating) => set({ isGenerating })
+      setIsGenerating: (isGenerating) => set({ isGenerating }),
+      
+      reset: () => set(() => ({
+        quizzes: [],
+        results: [],
+        activeQuiz: null,
+        isGenerating: false
+      }))
     }),
     {
       name: "quiz-storage",
