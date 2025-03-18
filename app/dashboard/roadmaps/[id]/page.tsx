@@ -1,155 +1,84 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Check, BookOpen, Clock, Target, LinkIcon } from "lucide-react"
+import { ArrowLeft, Check, BookOpen, Clock, Target, LinkIcon, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
+import { useRoadmapStore } from "@/store/roadmapStore"
+import { chatWithAI } from "@/lib/ai/roadmap-ai"
 
-type RoadmapStep = {
-  id: string
-  title: string
-  description: string
-  resources: { title: string; url: string }[]
-  completed: boolean
-}
-
-type Roadmap = {
-  id: string
-  title: string
-  description: string
-  category: string
-  steps: RoadmapStep[]
-  progress: number
-  created: Date
-}
-
-const getMockRoadmap = (id: string): Roadmap => {
-  return {
-    id,
-    title: id === "1" ? "Full Stack Web Development" : "Machine Learning Fundamentals",
-    description: id === "1" ? "Journey from beginner to full stack developer" : "Introduction to ML concepts and tools",
-    category: id === "1" ? "Web Development" : "Data Science",
-    progress: id === "1" ? 65 : 30,
-    created: new Date(2023, id === "1" ? 7 : 9, id === "1" ? 10 : 5),
-    steps:
-      id === "1"
-        ? [
-            {
-              id: "1-1",
-              title: "HTML & CSS Fundamentals",
-              description: "Master the building blocks of the web",
-              resources: [
-                { title: "MDN Web Docs - HTML", url: "#" },
-                { title: "CSS Tricks", url: "#" },
-              ],
-              completed: true,
-            },
-            {
-              id: "1-2",
-              title: "JavaScript Basics",
-              description: "Learn core JavaScript concepts and DOM manipulation",
-              resources: [
-                { title: "JavaScript.info", url: "#" },
-                { title: "Eloquent JavaScript", url: "#" },
-              ],
-              completed: true,
-            },
-            {
-              id: "1-3",
-              title: "Frontend Frameworks",
-              description: "Build interactive UIs with React",
-              resources: [
-                { title: "React Documentation", url: "#" },
-                { title: "React Hooks Tutorial", url: "#" },
-              ],
-              completed: true,
-            },
-            {
-              id: "1-4",
-              title: "Backend Development",
-              description: "Server-side programming with Node.js",
-              resources: [
-                { title: "Node.js Documentation", url: "#" },
-                { title: "Express.js Guide", url: "#" },
-              ],
-              completed: false,
-            },
-            {
-              id: "1-5",
-              title: "Databases",
-              description: "Working with SQL and NoSQL databases",
-              resources: [
-                { title: "MongoDB University", url: "#" },
-                { title: "PostgreSQL Tutorial", url: "#" },
-              ],
-              completed: false,
-            },
-          ]
-        : [
-            {
-              id: "2-1",
-              title: "Python for Data Science",
-              description: "Learn Python basics for data analysis",
-              resources: [
-                { title: "Python Data Science Handbook", url: "#" },
-                { title: "Pandas Documentation", url: "#" },
-              ],
-              completed: true,
-            },
-            {
-              id: "2-2",
-              title: "Mathematics for ML",
-              description: "Essential math concepts for machine learning",
-              resources: [
-                { title: "Linear Algebra Review", url: "#" },
-                { title: "Statistics and Probability", url: "#" },
-              ],
-              completed: false,
-            },
-            {
-              id: "2-3",
-              title: "ML Algorithms",
-              description: "Understanding core ML algorithms",
-              resources: [
-                { title: "Scikit-learn Tutorials", url: "#" },
-                { title: "Machine Learning Crash Course", url: "#" },
-              ],
-              completed: false,
-            },
-          ],
-  }
-}
-
-export default function RoadmapDetailPage({ params }: { params: { id: string } }) {
+export default function RoadmapDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = React.use(params)
+  const id = resolvedParams.id
+  
   const router = useRouter()
-  const [roadmap, setRoadmap] = useState<Roadmap | null>(null)
+  const [message, setMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const { 
+    roadmaps, 
+    activeRoadmap, 
+    setActiveRoadmap, 
+    toggleStepCompletion,
+    chatHistory,
+    addChatMessage
+  } = useRoadmapStore()
 
   useEffect(() => {
-    const roadmapData = getMockRoadmap(params.id)
-    setRoadmap(roadmapData)
-  }, [params.id])
+    const roadmap = roadmaps.find(r => r.id === id)
+    if (roadmap) {
+      setActiveRoadmap(roadmap)
+    } else {
+      router.push("/dashboard/roadmaps")
+    }
+  }, [id, roadmaps, setActiveRoadmap, router])
 
-  const toggleStepCompletion = (stepId: string) => {
-    if (!roadmap) return
-
-    const updatedSteps = roadmap.steps.map((step) => {
-      if (step.id === stepId) {
-        return { ...step, completed: !step.completed }
-      }
-      return step
-    })
-
-    const completedSteps = updatedSteps.filter((step) => step.completed).length
-    const progress = Math.round((completedSteps / updatedSteps.length) * 100)
-
-    setRoadmap({ ...roadmap, steps: updatedSteps, progress })
+  const handleToggleCompletion = (stepId: string) => {
+    if (activeRoadmap) {
+      toggleStepCompletion(activeRoadmap.id, stepId)
+    }
   }
 
-  if (!roadmap) {
+  const currentChatHistory = chatHistory.find(chat => chat.roadmapId === id)?.messages || []
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !activeRoadmap) return
+    
+    const userMessage = { role: 'user' as const, content: message }
+    addChatMessage(id, userMessage)
+    setMessage("")
+    setIsLoading(true)
+    
+    try {
+      // Add context about the roadmap to help the AI give better responses
+      const roadmapContext = `This is regarding a roadmap titled "${activeRoadmap.title}" about "${activeRoadmap.description}". It has ${activeRoadmap.steps.length} steps: ${activeRoadmap.steps.map(s => s.title).join(", ")}.`
+      
+      const allMessages = [
+        { role: 'system' as const, content: roadmapContext },
+        ...currentChatHistory,
+        userMessage
+      ]
+      
+      const aiResponse = await chatWithAI(id, allMessages)
+      addChatMessage(id, { role: 'assistant', content: aiResponse })
+    } catch (error) {
+      console.error("Error sending message:", error)
+      addChatMessage(id, { 
+        role: 'assistant', 
+        content: "Sorry, I encountered an error while processing your request. Please try again." 
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (!activeRoadmap) {
     return (
       <div className="container mx-auto p-6 flex items-center justify-center h-[calc(100vh-200px)]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -160,7 +89,7 @@ export default function RoadmapDetailPage({ params }: { params: { id: string } }
   return (
     <div className="container mx-auto p-6">
       <Button variant="ghost" className="mb-6" asChild>
-        <Link href="/roadmaps">
+        <Link href="/dashboard/roadmaps">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Roadmaps
         </Link>
@@ -169,94 +98,180 @@ export default function RoadmapDetailPage({ params }: { params: { id: string } }
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h1 className="text-3xl font-bold">{roadmap.title}</h1>
-            <p className="text-muted-foreground mt-1">{roadmap.description}</p>
+            <h1 className="text-3xl font-bold">{activeRoadmap.title}</h1>
+            <p className="text-muted-foreground mt-1">{activeRoadmap.description}</p>
           </div>
-          <Badge>{roadmap.category}</Badge>
+          <Badge>{activeRoadmap.category}</Badge>
         </div>
 
-        <Card className="mb-6">
-          <CardHeader className="pb-2">
-            <CardTitle>Progress Overview</CardTitle>
-            <CardDescription>Track your learning journey</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium">Overall Progress</span>
-              <span className="text-sm">{roadmap.progress}%</span>
-            </div>
-            <Progress value={roadmap.progress} className="h-2 mb-4" />
-
-            <div className="grid grid-cols-3 gap-4 mt-4">
-              <div className="flex flex-col items-center justify-center p-4 bg-muted rounded-lg">
-                <Target className="h-8 w-8 text-primary mb-2" />
-                <span className="text-lg font-bold">{roadmap.steps.length}</span>
-                <span className="text-sm text-muted-foreground">Total Steps</span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-muted rounded-lg">
-                <Check className="h-8 w-8 text-green-500 mb-2" />
-                <span className="text-lg font-bold">{roadmap.steps.filter((step) => step.completed).length}</span>
-                <span className="text-sm text-muted-foreground">Completed</span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-muted rounded-lg">
-                <Clock className="h-8 w-8 text-orange-500 mb-2" />
-                <span className="text-lg font-bold">
-                  {roadmap.steps.length - roadmap.steps.filter((step) => step.completed).length}
-                </span>
-                <span className="text-sm text-muted-foreground">Remaining</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold">Learning Path</h2>
-          {roadmap.steps.map((step, index) => (
-            <Card key={step.id} className={step.completed ? "border-green-500" : ""}>
+        <Tabs defaultValue="progress" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="progress">Learning Path</TabsTrigger>
+            <TabsTrigger value="ai-chat">AI Assistant</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="progress">
+            <Card className="mb-6">
               <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start">
-                    <Button
-                      size="sm"
-                      variant={step.completed ? "default" : "outline"}
-                      className="h-6 w-6 rounded-full p-0 mr-3 mt-1"
-                      onClick={() => toggleStepCompletion(step.id)}
-                    >
-                      {step.completed && <Check className="h-3 w-3" />}
-                    </Button>
-                    <div>
-                      <CardTitle className="text-base">
-                        {index + 1}. {step.title}
-                      </CardTitle>
-                      <CardDescription>{step.description}</CardDescription>
-                    </div>
-                  </div>
-                  <Badge variant={step.completed ? "default" : "outline"}>
-                    {step.completed ? "Completed" : "In Progress"}
-                  </Badge>
-                </div>
+                <CardTitle>Progress Overview</CardTitle>
+                <CardDescription>Track your learning journey</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <BookOpen className="h-4 w-4 mr-2 text-primary" />
-                    <h4 className="text-sm font-medium">Learning Resources</h4>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium">Overall Progress</span>
+                  <span className="text-sm">{activeRoadmap.progress}%</span>
+                </div>
+                <Progress value={activeRoadmap.progress} className="h-2 mb-4" />
+
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div className="flex flex-col items-center justify-center p-4 bg-muted rounded-lg">
+                    <Target className="h-8 w-8 text-primary mb-2" />
+                    <span className="text-lg font-bold">{activeRoadmap.steps.length}</span>
+                    <span className="text-sm text-muted-foreground">Total Steps</span>
                   </div>
-                  <ul className="space-y-2 pl-6">
-                    {step.resources.map((resource, i) => (
-                      <li key={i} className="flex items-center">
-                        <LinkIcon className="h-3 w-3 mr-2 text-muted-foreground" />
-                        <a href={resource.url} className="text-sm text-primary hover:underline">
-                          {resource.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="flex flex-col items-center justify-center p-4 bg-muted rounded-lg">
+                    <Check className="h-8 w-8 text-green-500 mb-2" />
+                    <span className="text-lg font-bold">{activeRoadmap.steps.filter((step) => step.completed).length}</span>
+                    <span className="text-sm text-muted-foreground">Completed</span>
+                  </div>
+                  <div className="flex flex-col items-center justify-center p-4 bg-muted rounded-lg">
+                    <Clock className="h-8 w-8 text-orange-500 mb-2" />
+                    <span className="text-lg font-bold">
+                      {activeRoadmap.steps.length - activeRoadmap.steps.filter((step) => step.completed).length}
+                    </span>
+                    <span className="text-sm text-muted-foreground">Remaining</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
+
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold">Learning Path</h2>
+              {activeRoadmap.steps.map((step, index) => (
+                <Card key={step.id} className={step.completed ? "border-green-500" : ""}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start">
+                        <Button
+                          size="sm"
+                          variant={step.completed ? "default" : "outline"}
+                          className="h-6 w-6 rounded-full p-0 mr-3 mt-1"
+                          onClick={() => handleToggleCompletion(step.id)}
+                        >
+                          {step.completed && <Check className="h-3 w-3" />}
+                        </Button>
+                        <div>
+                          <CardTitle className="text-base">
+                            {index + 1}. {step.title}
+                          </CardTitle>
+                          <CardDescription>{step.description}</CardDescription>
+                        </div>
+                      </div>
+                      <Badge variant={step.completed ? "default" : "outline"}>
+                        {step.completed ? "Completed" : "In Progress"}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <BookOpen className="h-4 w-4 mr-2 text-primary" />
+                        <h4 className="text-sm font-medium">Learning Resources</h4>
+                      </div>
+                      <ul className="space-y-2 pl-6">
+                        {step.resources.map((resource, i) => (
+                          <li key={i} className="flex items-center">
+                            <LinkIcon className="h-3 w-3 mr-2 text-muted-foreground" />
+                            <a 
+                              href={resource.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-sm text-primary hover:underline"
+                            >
+                              {resource.title}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="ai-chat">
+            <Card>
+              <CardHeader>
+                <CardTitle>Chat with AI Assistant</CardTitle>
+                <CardDescription>
+                  Ask questions about your roadmap or get help with specific topics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col h-[500px]">
+                  <div className="flex-1 overflow-y-auto mb-4 p-4 border rounded-lg">
+                    {currentChatHistory.length === 0 ? (
+                      <div className="text-center text-muted-foreground py-8">
+                        <p>No messages yet. Start a conversation!</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {currentChatHistory.map((msg, i) => (
+                          <div 
+                            key={i} 
+                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div 
+                              className={`max-w-[80%] rounded-lg p-3 ${
+                                msg.role === 'user' 
+                                  ? 'bg-primary text-primary-foreground' 
+                                  : 'bg-muted'
+                              }`}
+                            >
+                              <p className="whitespace-pre-wrap">{msg.content}</p>
+                            </div>
+                          </div>
+                        ))}
+                        {isLoading && (
+                          <div className="flex justify-start">
+                            <div className="max-w-[80%] rounded-lg p-3 bg-muted">
+                              <div className="flex space-x-2">
+                                <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                                <div className="w-2 h-2 rounded-full bg-primary animate-pulse delay-75"></div>
+                                <div className="w-2 h-2 rounded-full bg-primary animate-pulse delay-150"></div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Type your message..."
+                      className="flex-1 resize-none"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault()
+                          handleSendMessage()
+                        }
+                      }}
+                    />
+                    <Button 
+                      onClick={handleSendMessage} 
+                      disabled={isLoading || !message.trim()}
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

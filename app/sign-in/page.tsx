@@ -119,12 +119,6 @@ export default function SignInPage() {
                 "Sign In"
               )}
             </Button>
-            <div className="text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <Link href="#" className="text-primary hover:underline">
-                Sign up
-              </Link>
-            </div>
           </CardFooter>
         </form>
       </Card>

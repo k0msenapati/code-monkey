@@ -1,6 +1,8 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { setCookie, getCookie, deleteCookie } from 'cookies-next'
 
 // User interface with premium flag
 export interface User {
@@ -63,16 +65,19 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const router = useRouter()
   
   useEffect(() => {
-    const storedUser = localStorage.getItem("currentUser")
-    if (storedUser) {
+    // Try to get user from cookie instead of localStorage
+    const userFromCookie = getCookie('currentUser')
+    
+    if (userFromCookie) {
       try {
-        const parsedUser = JSON.parse(storedUser)
+        const parsedUser = JSON.parse(userFromCookie as string)
         setUser(parsedUser)
       } catch (error) {
         console.error("Failed to parse stored user:", error)
-        localStorage.removeItem("currentUser")
+        deleteCookie('currentUser')
       }
     }
     setIsLoading(false)
@@ -89,7 +94,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (foundUser && password === correctPassword) {
           setUser(foundUser)
-          localStorage.setItem("currentUser", JSON.stringify(foundUser))
+          // Store in cookie instead of localStorage
+          setCookie('currentUser', JSON.stringify(foundUser), {
+            maxAge: 60 * 60 * 24 * 7, // 1 week
+            path: '/',
+          })
           setIsLoading(false)
           resolve(foundUser)
         } else {
@@ -102,7 +111,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem("currentUser")
+    deleteCookie('currentUser')
+    router.push('/sign-in')
   }
 
   return (

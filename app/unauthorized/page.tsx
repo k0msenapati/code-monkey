@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/auth-context"
 export default function UnauthorizedPage() {
   const { user } = useAuth()
 
+  console.log("UnauthorizedPage", user)
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="text-center max-w-md">

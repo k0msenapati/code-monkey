@@ -36,9 +36,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ThemeSwitch } from "@/components/theme-switch"
+import { useAuth } from "@/contexts/auth-context"
 
 export function DashboardSidebar() {
   const pathname = usePathname()
+  const { user, logout } = useAuth()
 
   const navItems = [
     { title: "Dashboard", href: "/dashboard", icon: Home },
@@ -48,6 +50,16 @@ export function DashboardSidebar() {
     { title: "Code Editor", href: "/dashboard/editor", icon: Code2 },
     { title: "Snippets", href: "/dashboard/snippets", icon: FileCode },
   ]
+
+  // Get first letter of first and last name for avatar fallback
+  const getInitials = () => {
+    if (!user?.name) return "CM";
+    const nameParts = user.name.split(" ");
+    if (nameParts.length >= 2) {
+      return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`;
+    }
+    return nameParts[0][0];
+  };
 
   return (
     <Sidebar variant="floating">
@@ -73,6 +85,14 @@ export function DashboardSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={pathname === "/dashboard/settings"} tooltip="Settings">
+              <Link href="/dashboard/settings">
+                <Settings className="h-5 w-5" />
+                <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
@@ -84,10 +104,13 @@ export function DashboardSidebar() {
                 <SidebarMenuButton className="justify-between">
                   <div className="flex items-center">
                     <Avatar className="h-6 w-6 mr-2">
-                      <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
-                      <AvatarFallback>CM</AvatarFallback>
+                      <AvatarImage 
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || "User"}`} 
+                        alt={user?.name || "User"} 
+                      />
+                      <AvatarFallback>{getInitials()}</AvatarFallback>
                     </Avatar>
-                    <span>John Doe</span>
+                    <span>{user?.name || "Loading..."}</span>
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -95,17 +118,23 @@ export function DashboardSidebar() {
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/settings">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
                   </DropdownMenuItem>
+                  {user?.premium && (
+                    <DropdownMenuItem>
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      <span>Premium Member</span>
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </Link>
+                <DropdownMenuItem onClick={logout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
