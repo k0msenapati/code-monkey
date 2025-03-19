@@ -16,7 +16,7 @@ interface ActivityItem {
   title: string
   description: string
   timestamp: Date
-  type: "snippet" | "roadmap" | "chat"
+  type: "snippets" | "roadmaps" | "chat"
   icon: LucideIcon
 }
 
@@ -69,7 +69,7 @@ export default function DashboardPage() {
         title: snippet.title,
         description: `Code snippet - ${snippet.language}`,
         timestamp: snippet.created,
-        type: "snippet" as const,
+        type: "snippets" as const,
         icon: FileCode2
       }))
       
@@ -78,7 +78,7 @@ export default function DashboardPage() {
         title: roadmap.title,
         description: `Learning roadmap`,
         timestamp: new Date(roadmap.created || Date.now()),
-        type: "roadmap" as const,
+        type: "roadmaps" as const,
         icon: GitPullRequest
       }))
       
@@ -111,28 +111,28 @@ export default function DashboardPage() {
       title: "New Code Snippet",
       icon: PlusCircle,
       description: "Create a new snippet",
-      href: "/snippets/new",
+      href: "/dashboard/snippets",
       color: "bg-gradient-to-br from-blue-500 to-blue-600"
     },
     {
       title: "Generate Roadmap",
       icon: GitPullRequest,
       description: "Create a learning path",
-      href: "/roadmaps/new",
+      href: "/dashboard/roadmaps",
       color: "bg-gradient-to-br from-purple-500 to-purple-600"
     },
     {
       title: "New Chat",
       icon: MessageSquare,
       description: "Start an AI conversation",
-      href: "/chat",
+      href: "/dashboard/chat",
       color: "bg-gradient-to-br from-green-500 to-green-600"
     },
     {
       title: "Run Code",
       icon: Terminal,
       description: "Execute code snippets",
-      href: "/snippets",
+      href: "/dashboard/editor",
       color: "bg-gradient-to-br from-amber-500 to-amber-600"
     }
   ]
@@ -189,18 +189,18 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 {recentActivity.map((item) => (
                   <Link 
-                    href={`/${item.type}s/${item.id}`} 
+                    href={`/dashboard/${item.type}`} 
                     key={`${item.type}-${item.id}`}
                     className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
                   >
                     <div className={`p-2 rounded-full bg-${
-                      item.type === "snippet" ? "blue" : 
-                      item.type === "roadmap" ? "purple" : 
+                      item.type === "snippets" ? "blue" : 
+                      item.type === "roadmaps" ? "purple" : 
                       "green"
                     }-100`}>
                       <item.icon className={`h-5 w-5 text-${
-                        item.type === "snippet" ? "blue" : 
-                        item.type === "roadmap" ? "purple" : 
+                        item.type === "snippets" ? "blue" : 
+                        item.type === "roadmaps" ? "purple" : 
                         "green"
                       }-500`} />
                     </div>

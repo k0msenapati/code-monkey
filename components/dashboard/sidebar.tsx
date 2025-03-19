@@ -48,7 +48,7 @@ export function DashboardSidebar() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "/" && !event.ctrlKey && !event.metaKey) {
+      if (event.key === "/" && !event.ctrlKey && !event.metaKey && event.altKey) {
         event.preventDefault()
         toggleSidebar()
       }
@@ -84,25 +84,15 @@ export function DashboardSidebar() {
             <BrainCircuit className="h-6 w-6 text-primary" />
             <span className="ml-2 text-xl font-bold text-primary">CodeMonkey</span>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="h-8 w-8 md:hidden"
-            aria-label="Close Sidebar"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hidden md:block">
                   <span className="text-sm">?</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Toggle Sidebar <kbd>/</kbd></p>
+                <p>Toggle Sidebar <kbd>Alt</kbd>+<kbd>/</kbd></p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

@@ -1,7 +1,7 @@
 import type React from "react"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { DashboardSidebar } from "@/components/dashboard/sidebar"
-import { SidebarKeyboardShortcut } from "@/components/ui/sidebar-keyboard-shortcut"
+import { SidebarToggleButton, SidebarKeyboardShortcut } from "@/components/ui/sidebar-keyboard-shortcut"
 import { cookies } from "next/headers"
 
 export default async function DashboardLayout({
@@ -16,6 +16,7 @@ export default async function DashboardLayout({
     <SidebarProvider defaultOpen={defaultOpen}>
       <div className="flex min-h-screen w-full">
         <DashboardSidebar />
+        <SidebarToggleButton />
         <SidebarKeyboardShortcut />
         <main className="flex-1 w-full bg-background">{children}</main>
       </div>

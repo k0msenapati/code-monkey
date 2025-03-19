@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Play, Copy, Share2, Save, FileCode, Terminal, RefreshCw } from "lucide-react"
+import { Play, Copy, Save, FileCode, Terminal, RefreshCw, ArrowDown, ArrowUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { languages } from "@/lib/supported-languages"
 import { executeCode } from "@/lib/code-execution"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const getDefaultCode = (language: string): string => {
   switch (language) {
@@ -38,6 +39,8 @@ export function CodeEditor() {
   const [snippetTitle, setSnippetTitle] = useState("")
   const [snippetDescription, setSnippetDescription] = useState("")
   const [snippetTags, setSnippetTags] = useState("")
+  const [activeTab, setActiveTab] = useState<"editor" | "output">("editor")
+  const [height, setHeight] = useState("400px")
   
   const { 
     code, 
@@ -56,6 +59,19 @@ export function CodeEditor() {
     if (!code || code === "// Write your code here\n\nconsole.log('Hello, world!');") {
       updateCode(getDefaultCode(language))
     }
+    
+    const updateHeight = () => {
+      const viewportHeight = window.innerHeight;
+      if (viewportHeight < 768) {
+        setHeight(`${viewportHeight * 0.4}px`);
+      } else {
+        setHeight("400px");
+      }
+    };
+    
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
   }, [language, updateCode, code])
 
   const handleLanguageChange = (value: string) => {
@@ -147,10 +163,10 @@ export function CodeEditor() {
   return (
     <>
       <div className="flex flex-col min-h-[calc(100vh-16rem)]">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center space-x-2">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+          <div className="flex w-full sm:w-auto">
             <Select value={language} onValueChange={handleLanguageChange}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Language" />
               </SelectTrigger>
               <SelectContent>
@@ -161,7 +177,7 @@ export function CodeEditor() {
             </Select>
           </div>
 
-          <div className="flex space-x-2">
+          <div className="flex justify-end space-x-2">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -189,7 +205,89 @@ export function CodeEditor() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 flex-1">
+        <div className="md:hidden mb-4">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "editor" | "output")}>
+            <TabsList className="grid grid-cols-2">
+              <TabsTrigger value="editor">
+                <FileCode className="h-4 w-4 mr-2" />
+                Editor
+              </TabsTrigger>
+              <TabsTrigger value="output">
+                <Terminal className="h-4 w-4 mr-2" />
+                Output
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="editor" className="p-0 border rounded-md mt-2">
+              <div className="flex flex-col">
+                <div className="p-0">
+                  <textarea
+                    value={code}
+                    onChange={(e) => updateCode(e.target.value)}
+                    className={`w-full h-[${height}] font-mono text-sm bg-background resize-none focus:outline-none border-0 p-4`}
+                    style={{ height }}
+                  />
+                </div>
+                <div className="border-t p-3 flex justify-between">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setActiveTab("output")}
+                  >
+                    Output
+                    <ArrowDown className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button onClick={handleRunCode} disabled={isRunning}>
+                    {isRunning ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Running...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4 mr-2" />
+                        Run
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="output" className="p-0 border rounded-md mt-2">
+              <div className="flex flex-col">
+                <div className="p-0">
+                  <pre 
+                    className={`w-full h-[${height}] font-mono text-sm bg-black text-green-400 overflow-auto p-4`}
+                    style={{ height }}
+                  >
+                    {output || "> Code output will appear here..."}
+                  </pre>
+                </div>
+                <div className="border-t p-3 flex justify-between">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setActiveTab("editor")}
+                  >
+                    Editor
+                    <ArrowUp className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={clearOutput} 
+                    disabled={!output}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        <div className="hidden md:grid gap-4 md:grid-cols-2 flex-1">
           <Card className="flex flex-col">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center">
@@ -204,7 +302,7 @@ export function CodeEditor() {
                 className="w-full h-full min-h-[400px] p-4 font-mono text-sm bg-background resize-none focus:outline-none border-0"
               />
             </CardContent>
-            <CardFooter className="border-t pt-6">
+            <CardFooter className="border-t pt-3 pb-3">
               <Button onClick={handleRunCode} disabled={isRunning} className="ml-auto">
                 {isRunning ? (
                   <>
@@ -233,7 +331,7 @@ export function CodeEditor() {
                 {output || "> Code output will appear here..."}
               </pre>
             </CardContent>
-            <CardFooter className="border-t pt-6">
+            <CardFooter className="border-t pt-3 pb-3">
               <Button variant="outline" size="sm" onClick={clearOutput} className="ml-auto" disabled={!output}>
                 Clear
               </Button>
@@ -243,7 +341,7 @@ export function CodeEditor() {
       </div>
 
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-w-[90vw]">
           <DialogHeader>
             <DialogTitle>Save Code Snippet</DialogTitle>
           </DialogHeader>
@@ -278,9 +376,20 @@ export function CodeEditor() {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>Cancel</Button>
-            <Button onClick={handleSaveSnippet}>Save Snippet</Button>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowSaveDialog(false)}
+              className="sm:order-1 order-2"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveSnippet}
+              className="sm:order-2 order-1"
+            >
+              Save Snippet
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

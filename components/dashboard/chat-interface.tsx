@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, Trash2, Plus, Edit2, Save, Code } from "lucide-react"
+import { Send, Trash2, Plus, Edit2, Save, Code, Menu, X, MessageSquare, ChevronDown } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -11,6 +11,13 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const PROGRAMMING_LANGUAGES = [
   "javascript", "typescript", "python", "java", "c", "cpp", "csharp", 
@@ -38,10 +45,15 @@ export function ChatInterface() {
   const [codeInput, setCodeInput] = useState("")
   const [selectedLanguage, setSelectedLanguage] = useState("javascript")
   const messageEndRef = useRef<HTMLDivElement>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     initializeStore()
   }, [initializeStore])
+
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [sessions, activeSessionId])
 
   const activeSession = sessions.find(s => s.id === activeSessionId)
   const currentMessages = activeSession?.messages || []
@@ -56,10 +68,6 @@ export function ChatInterface() {
     setMessage("")
     setIsLoading(true)
     
-    setTimeout(() => {
-      messageEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, 100)
-    
     try {
       const systemContext = "You are a helpful AI assistant specialized in programming and software development."
       
@@ -71,10 +79,6 @@ export function ChatInterface() {
       
       const aiResponse = await chatWithAI(allMessages)
       addMessage(sessionId, { role: 'assistant', content: aiResponse })
-      
-      setTimeout(() => {
-        messageEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-      }, 100)
     } catch (error) {
       console.error("Error sending message:", error)
       addMessage(sessionId, { 
@@ -116,6 +120,11 @@ export function ChatInterface() {
     
     setCodeInput("")
     setCodeDialogOpen(false)
+  }
+
+  const handleSelectSession = (id: string) => {
+    setActiveSession(id)
+    setSidebarOpen(false) 
   }
 
   const renderMessageContent = (content: string) => {
@@ -177,9 +186,11 @@ export function ChatInterface() {
     );
   };
 
+  const activeSessionTitle = activeSession ? activeSession.title : "New Chat";
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <div className="md:col-span-1 space-y-4">
+      <div className="hidden md:block md:col-span-1 space-y-4">
         <Button 
           variant="outline" 
           className="w-full justify-start"
@@ -204,9 +215,7 @@ export function ChatInterface() {
                       onChange={(e) => setEditTitle(e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSaveEdit(session.id)
-                        }
+                        if (e.key === 'Enter') handleSaveEdit(session.id)
                       }}
                       className="h-6"
                       autoFocus
@@ -250,80 +259,175 @@ export function ChatInterface() {
         </ScrollArea>
       </div>
       
-      <div className="md:col-span-3">
-          <div>
-            <div className="flex flex-col h-[660px]">
-              <div className="flex-1 overflow-y-auto mb-4 p-4 border rounded-lg">
-                {currentMessages.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-8">
-                    <p>No messages yet. Start a conversation!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {currentMessages.map((msg, i) => (
-                      <div 
-                        key={i} 
-                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div 
-                          className={`max-w-[80%] rounded-lg p-3 ${
-                            msg.role === 'user' 
-                              ? 'bg-primary text-primary-foreground' 
-                              : 'bg-muted'
-                          }`}
+      <div className="md:hidden flex justify-between items-center mb-2">
+        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Menu className="h-4 w-4 mr-2" />
+              <span className="truncate w-24">{activeSessionTitle}</span>
+              <ChevronDown className="h-4 w-4 ml-2" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[80%] sm:w-[350px]">
+            <SheetHeader className="mb-4">
+              <SheetTitle>Your Chats</SheetTitle>
+            </SheetHeader>
+            <div className="mb-4">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => {
+                  createSession()
+                  setSidebarOpen(false)
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                New Chat
+              </Button>
+            </div>
+            <ScrollArea className="h-[calc(100vh-10rem)]">
+              <div className="space-y-2 pr-4">
+                {sessions.map((session) => (
+                  <div key={session.id} className="flex items-center">
+                    <Button 
+                      variant={activeSessionId === session.id ? "secondary" : "ghost"}
+                      className="flex-1 justify-start overflow-hidden text-ellipsis whitespace-nowrap"
+                      onClick={() => handleSelectSession(session.id)}
+                    >
+                      {editingId === session.id ? (
+                        <Input 
+                          value={editTitle} 
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveEdit(session.id)
+                          }}
+                          className="h-6"
+                          autoFocus
+                        />
+                      ) : (
+                        <span className="truncate">{session.title}</span>
+                      )}
+                    </Button>
+                    
+                    <div className="flex space-x-1">
+                      {editingId === session.id ? (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleSaveEdit(session.id)}
                         >
-                          {renderMessageContent(msg.content)}
-                        </div>
-                      </div>
-                    ))}
-                    {isLoading && (
-                      <div className="flex justify-start">
-                        <div className="max-w-[80%] rounded-lg p-3 bg-muted">
-                          <div className="flex space-x-2">
-                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse delay-75"></div>
-                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse delay-150"></div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    <div ref={messageEndRef} />
+                          <Save className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleStartEdit(session.id, session.title)}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDeleteSession(session.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex gap-2">
-                  <Textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Type your message..."
-                    className="flex-1 resize-none"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault()
-                        handleSendMessage()
-                      }
-                    }}
-                  />
-                  <div className="flex flex-col gap-2">
-                    <Button 
-                      onClick={handleSendMessage} 
-                      disabled={isLoading || !message.trim()}
+            </ScrollArea>
+          </SheetContent>
+        </Sheet>
+        
+        <Button 
+          variant="outline"
+          size="sm"
+          onClick={() => createSession()}
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          New
+        </Button>
+      </div>
+      
+      <div className="md:col-span-3 w-full">
+        <div>
+          <div className="flex flex-col h-[calc(100vh-10rem)] md:h-[660px]">
+            <div className="flex-1 overflow-y-auto mb-4 p-4 border rounded-lg">
+              {currentMessages.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8 flex flex-col items-center">
+                  <MessageSquare className="h-10 w-10 mb-2 opacity-20" />
+                  <p>No messages yet. Start a conversation!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {currentMessages.map((msg, i) => (
+                    <div 
+                      key={i} 
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => setCodeDialogOpen(true)}
-                      title="Insert code block"
-                    >
-                      <Code className="h-4 w-4" />
-                    </Button>
-                  </div>
+                      <div 
+                        className={`max-w-[90%] sm:max-w-[80%] rounded-lg p-3 ${
+                          msg.role === 'user' 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'bg-muted'
+                        }`}
+                      >
+                        {renderMessageContent(msg.content)}
+                      </div>
+                    </div>
+                  ))}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[80%] rounded-lg p-3 bg-muted">
+                        <div className="flex space-x-2">
+                          <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                          <div className="w-2 h-2 rounded-full bg-primary animate-pulse delay-75"></div>
+                          <div className="w-2 h-2 rounded-full bg-primary animate-pulse delay-150"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messageEndRef} />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  className="flex-1 resize-none"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSendMessage()
+                    }
+                  }}
+                />
+                <div className="flex flex-col gap-2">
+                  <Button 
+                    onClick={handleSendMessage} 
+                    disabled={isLoading || !message.trim()}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setCodeDialogOpen(true)}
+                    title="Insert code block"
+                  >
+                    <Code className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </div>
           </div>
+        </div>
       </div>
 
       <Dialog open={codeDialogOpen} onOpenChange={setCodeDialogOpen}>

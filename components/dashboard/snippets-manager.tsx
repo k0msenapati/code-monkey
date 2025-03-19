@@ -17,6 +17,8 @@ import {
   AlertCircle,
   Code,
   Star,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -59,6 +61,8 @@ export function SnippetsManager() {
     folder: ""
   })
   const [selectedSnippet, setSelectedSnippet] = useState<Snippet | null>(null)
+  const [foldersExpanded, setFoldersExpanded] = useState(false)
+  const [actionsExpanded, setActionsExpanded] = useState(false)
 
   const { snippets, addSnippet, updateSnippet, removeSnippet } = useSnippetStore()
   
@@ -214,7 +218,94 @@ export function SnippetsManager() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-      <div className="md:col-span-3 lg:col-span-2 space-y-6">
+      <div className="md:hidden space-y-4">
+        <Button 
+          variant="outline" 
+          className="w-full flex justify-between items-center"
+          onClick={() => setFoldersExpanded(!foldersExpanded)}
+        >
+          <span className="flex items-center">
+            <Folder className="h-4 w-4 mr-2" />
+            Folders
+          </span>
+          {foldersExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </Button>
+        
+        {foldersExpanded && (
+          <Card>
+            <CardContent className="px-2 py-2">
+              <ScrollArea className="h-[200px] px-4">
+                <div className="space-y-1">
+                  <Button
+                    variant={filterFolder === null ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => setFilterFolder(null)}
+                  >
+                    <Folder className="h-4 w-4 mr-2" />
+                    All Snippets
+                  </Button>
+
+                  {folders.map((folder) => (
+                    <Button
+                      key={folder}
+                      variant={filterFolder === folder ? "default" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => setFilterFolder(folder)}
+                    >
+                      <Folder className="h-4 w-4 mr-2" />
+                      {folder}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+            <CardFooter className="pt-2 pb-3">
+              <Button variant="outline" className="w-full" onClick={() => setIsAddFolderDialogOpen(true)}>
+                <FolderPlus className="h-4 w-4 mr-2" />
+                New Folder
+              </Button>
+            </CardFooter>
+          </Card>
+        )}
+        
+        <Button 
+          variant="outline" 
+          className="w-full flex justify-between items-center"
+          onClick={() => setActionsExpanded(!actionsExpanded)}
+        >
+          <span className="flex items-center">
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Quick Actions
+          </span>
+          {actionsExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </Button>
+        
+        {actionsExpanded && (
+          <Card>
+            <CardContent className="space-y-2 py-4">
+              <Button variant="outline" className="w-full justify-start" onClick={() => setIsAddDialogOpen(true)}>
+                <PlusCircle className="h-4 w-4 mr-2" />
+                New Snippet
+              </Button>
+
+              <Button variant="outline" className="w-full justify-start" onClick={importFromClipboard}>
+                <Clipboard className="h-4 w-4 mr-2" />
+                Import from Clipboard
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+      
+      <div className="hidden md:block md:col-span-3 lg:col-span-2 space-y-6">
         <Card>
           <CardHeader className="py-3">
             <CardTitle className="text-lg">Folders</CardTitle>
