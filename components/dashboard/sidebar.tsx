@@ -12,8 +12,8 @@ import {
   BookOpen,
   User,
   LogOut,
-  Bell,
   CreditCard,
+  X,
 } from "lucide-react"
 import {
   Sidebar,
@@ -24,6 +24,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -35,12 +36,27 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ThemeSwitch } from "@/components/theme-switch"
 import { useAuth } from "@/contexts/auth-context"
+import { Button } from "@/components/ui/button"
+import { useEffect } from "react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 
 export function DashboardSidebar() {
   const pathname = usePathname()
   const { user, logout } = useAuth()
+  const { toggleSidebar } = useSidebar()
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "/" && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault()
+        toggleSidebar()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [toggleSidebar])
 
   const navItems = [
     { title: "Dashboard", href: "/dashboard", icon: Home },
@@ -51,29 +67,49 @@ export function DashboardSidebar() {
     { title: "Snippets", href: "/dashboard/snippets", icon: FileCode },
   ]
 
-  // Get first letter of first and last name for avatar fallback
   const getInitials = () => {
-    if (!user?.name) return "CM";
-    const nameParts = user.name.split(" ");
+    if (!user?.name) return "CM"
+    const nameParts = user.name.split(" ")
     if (nameParts.length >= 2) {
-      return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`;
+      return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`
     }
-    return nameParts[0][0];
-  };
+    return nameParts[0][0]
+  }
 
   return (
     <Sidebar variant="floating">
       <SidebarHeader className="py-4">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <div className="flex items-center justify-center w-full">
-              <BrainCircuit className="h-6 w-6 text-primary" />
-              <span className="ml-2 text-xl font-bold text-primary">CodeMonkey</span>
-            </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <div className="flex items-center justify-between px-4 space-x-2">
+          <div className="flex items-center">
+            <BrainCircuit className="h-6 w-6 text-primary" />
+            <span className="ml-2 text-xl font-bold text-primary">CodeMonkey</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="h-8 w-8 md:hidden"
+            aria-label="Close Sidebar"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-muted-foreground">
+                  <span className="text-sm">?</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Toggle Sidebar <kbd>/</kbd></p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarSeparator />
+      <SidebarContent className="pt-4 px-4 pb-2">
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.href}>
@@ -104,9 +140,9 @@ export function DashboardSidebar() {
                 <SidebarMenuButton className="justify-between">
                   <div className="flex items-center">
                     <Avatar className="h-6 w-6 mr-2">
-                      <AvatarImage 
-                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || "User"}`} 
-                        alt={user?.name || "User"} 
+                      <AvatarImage
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || "User"}`}
+                        alt={user?.name || "User"}
                       />
                       <AvatarFallback>{getInitials()}</AvatarFallback>
                     </Avatar>
@@ -144,4 +180,3 @@ export function DashboardSidebar() {
     </Sidebar>
   )
 }
-

@@ -14,12 +14,10 @@ export default function EditorPage() {
   const { snippets, activeSnippet } = useSnippetStore()
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Code Editor</h1>
-      <p className="text-muted-foreground mb-6">Write, run, and share code. Test your algorithms and ideas quickly.</p>
-
+    <div className="p-6 space-y-4">
+      <h1 className="text-3xl font-bold">Code Editor</h1>
       <CodeEditor />
-      <div className="mt-8 border-t pt-4">
+      <div className="border-t pt-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-medium">Saved Snippets</h3>
           <Button 

@@ -106,13 +106,6 @@ export function CodeEditor() {
     })
   }
 
-  const shareCode = () => {
-    toast({
-      title: "Share link created",
-      description: "Anyone with the link can view this code",
-    })
-  }
-
   const openSaveDialog = () => {
     setSnippetTitle("")
     setSnippetDescription("")
@@ -153,7 +146,7 @@ export function CodeEditor() {
 
   return (
     <>
-      <div className="flex flex-col h-[calc(100vh-300px)]">
+      <div className="flex flex-col min-h-[calc(100vh-16rem)]">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center space-x-2">
             <Select value={language} onValueChange={handleLanguageChange}>
@@ -181,20 +174,6 @@ export function CodeEditor() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={shareCode}>
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Share code</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -225,7 +204,7 @@ export function CodeEditor() {
                 className="w-full h-full min-h-[400px] p-4 font-mono text-sm bg-background resize-none focus:outline-none border-0"
               />
             </CardContent>
-            <CardFooter className="border-t">
+            <CardFooter className="border-t pt-6">
               <Button onClick={handleRunCode} disabled={isRunning} className="ml-auto">
                 {isRunning ? (
                   <>
@@ -254,7 +233,7 @@ export function CodeEditor() {
                 {output || "> Code output will appear here..."}
               </pre>
             </CardContent>
-            <CardFooter className="border-t">
+            <CardFooter className="border-t pt-6">
               <Button variant="outline" size="sm" onClick={clearOutput} className="ml-auto" disabled={!output}>
                 Clear
               </Button>

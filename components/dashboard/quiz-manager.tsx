@@ -288,7 +288,6 @@ export function QuizManager() {
         <TabsTrigger value="generate">Generate Quiz</TabsTrigger>
       </TabsList>
 
-      {/* My Quizzes Tab */}
       <TabsContent value="my-quizzes" className="space-y-4">
         <div className="flex justify-between items-center flex-wrap gap-2">
           <div className="relative w-full max-w-sm">
@@ -408,7 +407,6 @@ export function QuizManager() {
           </div>
         </div>
 
-        {/* Quiz Table */}
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -487,7 +485,6 @@ export function QuizManager() {
         </div>
       </TabsContent>
 
-      {/* Generate Quiz Tab */}
       <TabsContent value="generate" className="space-y-6">
         <Card>
           <CardHeader>
@@ -592,7 +589,6 @@ export function QuizManager() {
         </Card>
       </TabsContent>
 
-      {/* Quiz Preview Dialog */}
       <Dialog open={!!viewingQuiz} onOpenChange={(open) => !open && setViewingQuiz(null)}>
         <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
           {viewingQuiz && (

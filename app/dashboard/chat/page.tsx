@@ -9,7 +9,6 @@ export default function ChatPage() {
       <p className="text-muted-foreground mb-6">
         Chat with your AI assistant about code, get explanations, or ask for help with problems.
       </p>
-
       <ChatInterface />
     </div>
   )

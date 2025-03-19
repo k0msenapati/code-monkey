@@ -251,15 +251,8 @@ export function ChatInterface() {
       </div>
       
       <div className="md:col-span-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Chat with AI Assistant</CardTitle>
-            <CardDescription>
-              Ask questions about programming, coding concepts, or get help with problems
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col h-[500px]">
+          <div>
+            <div className="flex flex-col h-[660px]">
               <div className="flex-1 overflow-y-auto mb-4 p-4 border rounded-lg">
                 {currentMessages.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8">
@@ -330,11 +323,9 @@ export function ChatInterface() {
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
       </div>
 
-      {/* Code Input Dialog */}
       <Dialog open={codeDialogOpen} onOpenChange={setCodeDialogOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>

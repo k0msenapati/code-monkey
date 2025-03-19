@@ -212,20 +212,6 @@ export function SnippetsManager() {
     }
   }
 
-  const sendToChat = (snippet: Snippet) => {
-    toast({
-      title: "Sent to AI chat",
-      description: "Your snippet has been sent to the AI chat for analysis",
-    })
-  }
-
-  const generateQuiz = (snippet: Snippet) => {
-    toast({
-      title: "Generating quiz",
-      description: "Creating a quiz based on this snippet",
-    })
-  }
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
       <div className="md:col-span-3 lg:col-span-2 space-y-6">
@@ -456,14 +442,6 @@ export function SnippetsManager() {
                     <Star className={`h-4 w-4 mr-2 ${selectedSnippet.favorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
                     {selectedSnippet.favorite ? "Unfavorite" : "Favorite"}
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => sendToChat(selectedSnippet)}>
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Send to Chat
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => generateQuiz(selectedSnippet)}>
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    Generate Quiz
-                  </Button>
                   <Button variant="outline" size="sm" asChild>
                     <Link href={`/dashboard/editor/snippet/${selectedSnippet.id}`}>
                       <Code className="h-4 w-4 mr-2" />
@@ -505,7 +483,7 @@ export function SnippetsManager() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="justify-between border-t">
+            <CardFooter className="justify-between border-t pt-6">
               <Button 
                 variant="ghost" 
                 size="sm" 
