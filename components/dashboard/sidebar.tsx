@@ -40,11 +40,13 @@ import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { useEffect } from "react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
+import { useFeatureFlags } from "@/providers/FeatureFlagProvider"
 
 export function DashboardSidebar() {
   const pathname = usePathname()
   const { user, logout } = useAuth()
   const { toggleSidebar } = useSidebar()
+  const { generateRoadmap } = useFeatureFlags()
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -58,14 +60,22 @@ export function DashboardSidebar() {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [toggleSidebar])
 
-  const navItems = [
+  const baseNavItems = [
     { title: "Dashboard", href: "/dashboard", icon: Home },
     { title: "AI Chat", href: "/dashboard/chat", icon: MessageSquare },
     { title: "Quizzes", href: "/dashboard/quizzes", icon: BookOpen },
-    { title: "Roadmaps", href: "/dashboard/roadmaps", icon: Map },
+  ]
+  
+  const roadmapItem = generateRoadmap 
+    ? [{ title: "Roadmaps", href: "/dashboard/roadmaps", icon: Map }] 
+    : []
+  
+  const remainingItems = [
     { title: "Code Editor", href: "/dashboard/editor", icon: Code2 },
     { title: "Snippets", href: "/dashboard/snippets", icon: FileCode },
   ]
+  
+  const navItems = [...baseNavItems, ...roadmapItem, ...remainingItems]
 
   const getInitials = () => {
     if (!user?.name) return "CM"

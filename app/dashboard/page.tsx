@@ -7,9 +7,10 @@ import { useChatStore } from "@/store/chatStore"
 import { useEffect, useState } from "react"
 import { CircleOff, Code2, FileCode2, GitPullRequest, LucideIcon, MessageSquare, PlusCircle, Terminal, Zap } from "lucide-react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { useFlags, useFlagsmith } from 'flagsmith/react';
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useFeatureFlags } from '@/providers/FeatureFlagProvider';
 
 interface ActivityItem {
   id: string
@@ -35,6 +36,7 @@ export default function DashboardPage() {
   
   const [isLoading, setIsLoading] = useState(true)
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([])
+  const { generateRoadmap } = useFeatureFlags();
   
   const metrics: DashboardMetric[] = [
     {
@@ -60,6 +62,10 @@ export default function DashboardPage() {
     }
   ]
   
+  const displayMetrics = metrics.filter(metric => 
+    metric.title !== "Learning Roadmaps" || generateRoadmap
+  );
+  
   useEffect(() => {
     const getRecentActivity = () => {
       setIsLoading(true)
@@ -73,14 +79,16 @@ export default function DashboardPage() {
         icon: FileCode2
       }))
       
-      const roadmapActivities = roadmaps.map(roadmap => ({
-        id: roadmap.id,
-        title: roadmap.title,
-        description: `Learning roadmap`,
-        timestamp: new Date(roadmap.created || Date.now()),
-        type: "roadmaps" as const,
-        icon: GitPullRequest
-      }))
+      const roadmapActivities = generateRoadmap 
+        ? roadmaps.map(roadmap => ({
+            id: roadmap.id,
+            title: roadmap.title,
+            description: `Learning roadmap`,
+            timestamp: new Date(roadmap.created || Date.now()),
+            type: "roadmaps" as const,
+            icon: GitPullRequest
+          }))
+        : [];
       
       const chatActivities = chatSessions.map(session => ({
         id: session.id,
@@ -104,7 +112,7 @@ export default function DashboardPage() {
     }
     
     getRecentActivity()
-  }, [snippets, roadmaps, chatSessions])
+  }, [snippets, roadmaps, chatSessions, generateRoadmap])
   
   const quickActions = [
     {
@@ -137,6 +145,10 @@ export default function DashboardPage() {
     }
   ]
   
+  const filteredQuickActions = quickActions.filter(action => 
+    action.title !== "Generate Roadmap" || generateRoadmap
+  );
+  
   return (
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex items-center justify-between">
@@ -147,7 +159,7 @@ export default function DashboardPage() {
       </div>
       
       <div className="grid gap-6 md:grid-cols-3">
-        {metrics.map((metric, i) => (
+        {displayMetrics.map((metric, i) => (
           <Card key={i} className="overflow-hidden border-none shadow-md">
             <div className="flex">
               <div className={`${metric.color} p-4 flex items-center justify-center`}>
@@ -162,7 +174,7 @@ export default function DashboardPage() {
           </Card>
         ))}
       </div>
-      
+
       <div className="grid gap-8 md:grid-cols-7">
         <Card className="md:col-span-4 border-none shadow-md">
           <CardHeader className="pb-2">
@@ -234,7 +246,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4">
-              {quickActions.map((action, i) => (
+              {filteredQuickActions.map((action, i) => (
                 <Link 
                   href={action.href} 
                   key={i} 
@@ -256,7 +268,7 @@ export default function DashboardPage() {
         </Card>
       </div>
       
-      {roadmaps.length > 0 && (
+      {generateRoadmap && roadmaps.length > 0 && (
         <Card className="border-none shadow-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-xl">Your Learning Progress</CardTitle>
@@ -268,7 +280,7 @@ export default function DashboardPage() {
                 const completedSteps = roadmap.steps?.filter(step => step.completed)?.length || 0;
                 const totalSteps = roadmap.steps?.length || 1;
                 const progress = (completedSteps / totalSteps) * 100;
-                
+
                 return (
                   <div key={roadmap.id} className="space-y-2">
                     <div className="flex items-center justify-between">

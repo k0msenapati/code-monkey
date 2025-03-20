@@ -66,8 +66,6 @@ export async function generateQuizWithAI(
     const response = await result.response;
     let text = response.text();
 
-    console.log("Raw AI response:", text.substring(0, 200) + "...");
-
     text = text.trim();
     
     text = text.replace(/```json|```javascript|```/g, '');
@@ -87,8 +85,6 @@ export async function generateQuizWithAI(
       .replace(/},\s*]/g, '}]')
       .replace(/,\s*}/g, '}');
 
-    console.log("Cleaned JSON:", text.substring(0, 200) + "...");
-
     let quizData: any;
     try {
       quizData = JSON.parse(text);
@@ -102,7 +98,6 @@ export async function generateQuizWithAI(
       if (matches && matches.length > 0) {
         try {
           quizData = JSON.parse(matches[0]);
-          console.log("Extracted JSON with regex");
         } catch (regexError) {
           throw new Error(`Could not parse the AI response as valid JSON. Please try again.`);
         }
