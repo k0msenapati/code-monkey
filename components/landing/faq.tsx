@@ -21,11 +21,6 @@ const faqs = [
       "Our AI chat assistant uses advanced language models to understand your coding questions and provide helpful, contextual responses. You can ask about specific programming concepts, get help debugging code, or receive guidance on best practices.",
   },
   {
-    question: "Can I use CodeMonkey on mobile devices?",
-    answer:
-      "Yes, CodeMonkey is fully responsive and works on desktop, tablet, and mobile devices. However, for the best coding experience, we recommend using a desktop or laptop computer.",
-  },
-  {
     question: "How are the learning roadmaps created?",
     answer:
       "Our learning roadmaps are designed by experienced developers and educators, then personalized by our AI based on your goals and current skill level. Each roadmap provides a structured path to master specific technologies or concepts.",
@@ -34,16 +29,6 @@ const faqs = [
     question: "Is my code secure on CodeMonkey?",
     answer:
       "Absolutely. We take security seriously and use encryption to protect your code and personal data. Your code is private by default and only shared when you explicitly choose to do so.",
-  },
-  {
-    question: "Can I cancel my subscription at any time?",
-    answer:
-      "Yes, you can cancel your subscription at any time. If you cancel, you'll continue to have access to your paid plan until the end of your billing period.",
-  },
-  {
-    question: "Do you offer educational discounts?",
-    answer:
-      "Yes, we offer special pricing for students, educators, and educational institutions. Contact our sales team for more information about our educational programs.",
   },
 ]
 
@@ -55,7 +40,7 @@ export function Faq() {
   }
 
   return (
-    <section id="faq" className="py-20 md:py-32 bg-muted/30">
+    <section id="faq" className="py-20 md:py-32 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.div
@@ -97,8 +82,8 @@ export function Faq() {
         >
           <p className="text-muted-foreground">
             Still have questions?{" "}
-            <a href="#" className="text-primary hover:underline">
-              Contact our support team
+            <a href="#team" className="text-primary hover:underline">
+              Contact our team
             </a>
           </p>
         </motion.div>
@@ -106,4 +91,3 @@ export function Faq() {
     </section>
   )
 }
-

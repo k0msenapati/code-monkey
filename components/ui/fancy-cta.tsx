@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export const CardBody = ({
+const CardBody = ({
   className = "",
   title,
   description
@@ -10,26 +10,44 @@ export const CardBody = ({
   description: string;
 }) => (
   <div className={cn("text-center flex flex-col items-center", className)}>
-    <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+    <h3 className="text-xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
       {title}
     </h3>
-    <p className="text-gray-700 dark:text-gray-400 max-w-md">
+    <p className="text-gray-700 dark:text-gray-400 max-w-xl md:text-2xl">
       {description}
     </p>
   </div>
 );
 
-//======================================
-export const MultilayerCardV_2 = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="py-14 flex justify-center">
-      <div className="relative h-72 sm:h-52 w-full max-w-2xl">
-        <div className="absolute inset-0 dark:bg-zinc-900 bg-zinc-100 rounded-3xl border border-neutral-200 dark:border-zinc-800 scale-y-[1.15] scale-x-90 -top-4"></div>
+export const SimpleCard_V7 = ({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) => {
+  const Icon = ({
+    className,
+    ...rest
+  }: React.HTMLAttributes<HTMLDivElement>) => {
+    return (
+      <div
+        {...rest}
+        className={cn(
+          'dark:border-zinc-200 border-zinc-700 size-6 absolute',
+          className,
+        )}
+      />
+    );
+  };
 
-        <div className="absolute inset-0 dark:bg-zinc-950 bg-white rounded-3xl p-6 flex justify-center items-center shadow-lg border border-neutral-200 dark:border-zinc-800">
-          {children}
-        </div>
-      </div>
+  return (
+    <div className="border-2 border-zinc-100 dark:border-zinc-700 relative rounded-md max-w-fit px-6 py-4 mx-auto inline-block">
+      <Icon className="-top-0.5 -left-0.5 border-l-2 border-t-2 rounded-tl-md" />
+      <Icon className="-top-0.5 -right-0.5 border-r-2 border-t-2 rounded-tr-md" />
+      <Icon className="-bottom-0.5 -left-0.5 border-l-2 border-b-2 rounded-bl-md" />
+      <Icon className="-bottom-0.5 -right-0.5 border-r-2 border-b-2 rounded-br-md" />
+      <CardBody className="text-center p-5 md:p-14" title={title} description={description} />
     </div>
   );
 };

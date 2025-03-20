@@ -27,7 +27,7 @@ const teamMembers: TeamMemberProps[] = [
 
 export const TeamSection = () => {
   return (
-    <section id="team" className="container py-24 sm:py-32">
+    <section id="team" className="container py-24 sm:py-32 bg-background">
       <h2 className="text-lg text-primary text-center mb-2 tracking-wider">
         Our Team
       </h2>

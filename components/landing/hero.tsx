@@ -5,6 +5,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { ArrowRight, Code, MessageSquare, BookOpen, Map, Home, Star, Github } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { SparklesText } from "../ui/sparkles-text"
 
 export function Hero() {
   const [mounted, setMounted] = useState(false)
@@ -31,9 +32,10 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-4xl md:text-6xl font-bold tracking-tight"
+            className="text-4xl md:text-5xl font-bold tracking-tight"
           >
-            Supercharge Your Coding Journey with <span className="text-primary">AI-Powered</span> Tools
+            Supercharge Your Coding Journey
+            <SparklesText text="AI-Powered Tools" />
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -184,4 +186,3 @@ export function Hero() {
     </section>
   )
 }
-
