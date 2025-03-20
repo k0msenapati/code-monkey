@@ -7,7 +7,6 @@ import { useChatStore } from "@/store/chatStore"
 import { useEffect, useState } from "react"
 import { CircleOff, Code2, FileCode2, GitPullRequest, LucideIcon, MessageSquare, PlusCircle, Terminal, Zap } from "lucide-react"
 import Link from "next/link"
-import { useFlags, useFlagsmith } from 'flagsmith/react';
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useFeatureFlags } from '@/providers/FeatureFlagProvider';

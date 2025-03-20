@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Moon, Sun, Monitor } from "lucide-react"
+import { Moon, Sun, Monitor, LockIcon } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -13,13 +13,20 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/auth-context"
 import { Badge } from "@/components/ui/badge"
+import { useFeatureFlags } from "@/providers/FeatureFlagProvider"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, forcedTheme } = useTheme()
   const [selectedTheme, setSelectedTheme] = useState(theme || "system")
   const { user, logout } = useAuth()
+  const { toggleTheme } = useFeatureFlags()
+  
+  const isThemeSelectionLocked = !toggleTheme
 
   const handleThemeChange = (value: string) => {
+    if (isThemeSelectionLocked) return
+    
     setSelectedTheme(value)
     setTheme(value)
   }
@@ -120,32 +127,57 @@ export default function SettingsPage() {
                 <CardDescription>Customize the appearance of the application</CardDescription>
               </CardHeader>
               <CardContent>
-                <RadioGroup value={selectedTheme} onValueChange={handleThemeChange} className="grid grid-cols-3 gap-4">
+                {isThemeSelectionLocked && (
+                  <Alert className="mb-4 border-yellow-500 bg-yellow-500/10">
+                    <LockIcon className="h-4 w-4" />
+                    <AlertTitle>Premium Feature</AlertTitle>
+                    <AlertDescription>
+                      Theme customization is available exclusively for premium members. 
+                      <Button 
+                        variant="link" 
+                        className="text-yellow-500 p-0 h-auto font-semibold ml-2"
+                        onClick={() => {/* todo: handle upgrade */}}
+                      >
+                        Upgrade now
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                <RadioGroup 
+                  value={forcedTheme || selectedTheme} 
+                  onValueChange={handleThemeChange} 
+                  className="grid grid-cols-3 gap-4"
+                  disabled={isThemeSelectionLocked}
+                >
                   <div>
-                    <RadioGroupItem value="light" id="theme-light" className="peer sr-only" />
+                    <RadioGroupItem value="light" id="theme-light" className="peer sr-only" disabled={isThemeSelectionLocked} />
                     <Label
                       htmlFor="theme-light"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                      className={`flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary ${isThemeSelectionLocked ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                     >
                       <Sun className="mb-3 h-6 w-6" />
                       Light
+                      {isThemeSelectionLocked && forcedTheme === "light" && (
+                        <Badge variant="outline" className="mt-2">Current</Badge>
+                      )}
                     </Label>
                   </div>
                   <div>
-                    <RadioGroupItem value="dark" id="theme-dark" className="peer sr-only" />
+                    <RadioGroupItem value="dark" id="theme-dark" className="peer sr-only" disabled={isThemeSelectionLocked} />
                     <Label
                       htmlFor="theme-dark"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                      className={`flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary ${isThemeSelectionLocked ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                     >
                       <Moon className="mb-3 h-6 w-6" />
                       Dark
                     </Label>
                   </div>
                   <div>
-                    <RadioGroupItem value="system" id="theme-system" className="peer sr-only" />
+                    <RadioGroupItem value="system" id="theme-system" className="peer sr-only" disabled={isThemeSelectionLocked} />
                     <Label
                       htmlFor="theme-system"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                      className={`flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary ${isThemeSelectionLocked ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                     >
                       <Monitor className="mb-3 h-6 w-6" />
                       System

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { BrainCircuit, Menu, X, User, Github } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ThemeSwitch } from "@/components/theme-switch"
 import { cn } from "@/lib/utils"
 
 export function Navbar() {
@@ -46,7 +45,6 @@ export function Navbar() {
 
         {!isScrolled && (
           <div className="hidden md:flex items-center gap-4">
-            <ThemeSwitch />
             <Link href="/sign-in">
               <Button variant="ghost" size="icon">
                 <User className="h-5 w-5" />

@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useFeatureFlags } from "@/providers/FeatureFlagProvider"
 
 const PROGRAMMING_LANGUAGES = [
   "javascript", "typescript", "python", "java", "c", "cpp", "csharp", 
@@ -25,6 +26,7 @@ const PROGRAMMING_LANGUAGES = [
 ];
 
 export function ChatInterface() {
+  const { chatCodeImport } = useFeatureFlags();
   const { 
     sessions, 
     activeSessionId, 
@@ -416,13 +418,15 @@ export function ChatInterface() {
                   >
                     <Send className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => setCodeDialogOpen(true)}
-                    title="Insert code block"
-                  >
-                    <Code className="h-4 w-4" />
-                  </Button>
+                  {chatCodeImport && (
+                    <Button 
+                      variant="outline"
+                      onClick={() => setCodeDialogOpen(true)}
+                      title="Insert code block"
+                    >
+                      <Code className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -430,42 +434,44 @@ export function ChatInterface() {
         </div>
       </div>
 
-      <Dialog open={codeDialogOpen} onOpenChange={setCodeDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Insert Code</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4">
-            <div>
-              <Select
-                value={selectedLanguage}
-                onValueChange={setSelectedLanguage}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Language" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROGRAMMING_LANGUAGES.map(lang => (
-                    <SelectItem key={lang} value={lang}>
-                      {lang.charAt(0).toUpperCase() + lang.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      {chatCodeImport && (
+        <Dialog open={codeDialogOpen} onOpenChange={setCodeDialogOpen}>
+          <DialogContent className="sm:max-w-xl">
+            <DialogHeader>
+              <DialogTitle>Insert Code</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4">
+              <div>
+                <Select
+                  value={selectedLanguage}
+                  onValueChange={setSelectedLanguage}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROGRAMMING_LANGUAGES.map(lang => (
+                      <SelectItem key={lang} value={lang}>
+                        {lang.charAt(0).toUpperCase() + lang.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Textarea
+                value={codeInput}
+                onChange={(e) => setCodeInput(e.target.value)}
+                placeholder="Paste your code here..."
+                className="min-h-[200px]"
+              />
             </div>
-            <Textarea
-              value={codeInput}
-              onChange={(e) => setCodeInput(e.target.value)}
-              placeholder="Paste your code here..."
-              className="min-h-[200px]"
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCodeDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleInsertCode}>Insert</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCodeDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleInsertCode}>Insert</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

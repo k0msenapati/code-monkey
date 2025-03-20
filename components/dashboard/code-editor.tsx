@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { languages } from "@/lib/supported-languages"
 import { executeCode } from "@/lib/code-execution"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useFeatureFlags } from "@/providers/FeatureFlagProvider"
 
 const getDefaultCode = (language: string): string => {
   switch (language) {
@@ -35,6 +36,7 @@ const getDefaultCode = (language: string): string => {
 
 export function CodeEditor() {
   const { toast } = useToast()
+  const { saveSnippetsInEditor } = useFeatureFlags()
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [snippetTitle, setSnippetTitle] = useState("")
   const [snippetDescription, setSnippetDescription] = useState("")
@@ -190,18 +192,21 @@ export function CodeEditor() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={openSaveDialog}>
-                    <Save className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Save as snippet</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            
+            {saveSnippetsInEditor && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" onClick={openSaveDialog}>
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Save as snippet</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </div>
 
@@ -340,59 +345,61 @@ export function CodeEditor() {
         </div>
       </div>
 
-      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-        <DialogContent className="sm:max-w-[500px] max-w-[90vw]">
-          <DialogHeader>
-            <DialogTitle>Save Code Snippet</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                value={snippetTitle}
-                onChange={(e) => setSnippetTitle(e.target.value)}
-                placeholder="Enter a title for your snippet"
-              />
+      {saveSnippetsInEditor && (
+        <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+          <DialogContent className="sm:max-w-[500px] max-w-[90vw]">
+            <DialogHeader>
+              <DialogTitle>Save Code Snippet</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={snippetTitle}
+                  onChange={(e) => setSnippetTitle(e.target.value)}
+                  placeholder="Enter a title for your snippet"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={snippetDescription}
+                  onChange={(e) => setSnippetDescription(e.target.value)}
+                  placeholder="Describe what this code does"
+                  className="resize-none"
+                  rows={3}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="tags">Tags (comma separated)</Label>
+                <Input
+                  id="tags"
+                  value={snippetTags}
+                  onChange={(e) => setSnippetTags(e.target.value)}
+                  placeholder="javascript, function, algorithm"
+                />
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={snippetDescription}
-                onChange={(e) => setSnippetDescription(e.target.value)}
-                placeholder="Describe what this code does"
-                className="resize-none"
-                rows={3}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="tags">Tags (comma separated)</Label>
-              <Input
-                id="tags"
-                value={snippetTags}
-                onChange={(e) => setSnippetTags(e.target.value)}
-                placeholder="javascript, function, algorithm"
-              />
-            </div>
-          </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowSaveDialog(false)}
-              className="sm:order-1 order-2"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSaveSnippet}
-              className="sm:order-2 order-1"
-            >
-              Save Snippet
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowSaveDialog(false)}
+                className="sm:order-1 order-2"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSaveSnippet}
+                className="sm:order-2 order-1"
+              >
+                Save Snippet
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   )
 }

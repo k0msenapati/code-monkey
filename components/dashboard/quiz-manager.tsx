@@ -26,10 +26,12 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useQuizStore, Quiz, Question } from "@/store/quizStore"
 import { generateQuizWithAI } from "@/lib/quiz-generation"
+import { useFeatureFlags } from "@/providers/FeatureFlagProvider"
 
 export function QuizManager() {
   const router = useRouter()
   const { toast } = useToast()
+  const { createQuiz, generateQuiz, importQuiz } = useFeatureFlags()
   
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("my-quizzes")
@@ -283,9 +285,11 @@ export function QuizManager() {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-4 sm:mb-6">
+      <TabsList className={`grid w-full max-w-md mx-auto mb-4 sm:mb-6 ${generateQuiz ? "grid-cols-2" : "grid-cols-1"}`}>
         <TabsTrigger value="my-quizzes">My Quizzes</TabsTrigger>
-        <TabsTrigger value="generate">Generate Quiz</TabsTrigger>
+        {generateQuiz && (
+          <TabsTrigger value="generate">Generate Quiz</TabsTrigger>
+        )}
       </TabsList>
 
       <TabsContent value="my-quizzes" className="space-y-4">
@@ -301,118 +305,122 @@ export function QuizManager() {
           </div>
 
           <div className="flex gap-2 w-full sm:w-auto justify-end">
-            <Dialog open={isImportQuizOpen} onOpenChange={setIsImportQuizOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="flex-1 sm:flex-initial">
-                  <FileDown className="h-4 w-4 mr-2" />
-                  <span className="sm:inline">Import</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[95vw] max-w-md sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Import Quiz</DialogTitle>
-                  <DialogDescription>Upload a JSON file to import a quiz</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <Label htmlFor="quiz-file">Quiz JSON File</Label>
-                  <Input id="quiz-file" type="file" accept=".json" onChange={handleImportQuiz} />
-                </div>
-                <DialogFooter className="flex-col sm:flex-row gap-2">
-                  <Button variant="outline" onClick={() => setIsImportQuizOpen(false)} className="sm:order-1 order-2">
-                    Cancel
+            {importQuiz && (
+              <Dialog open={isImportQuizOpen} onOpenChange={setIsImportQuizOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="flex-1 sm:flex-initial">
+                    <FileDown className="h-4 w-4 mr-2" />
+                    <span className="sm:inline">Import</span>
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent className="w-[95vw] max-w-md sm:max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle>Import Quiz</DialogTitle>
+                    <DialogDescription>Upload a JSON file to import a quiz</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <Label htmlFor="quiz-file">Quiz JSON File</Label>
+                    <Input id="quiz-file" type="file" accept=".json" onChange={handleImportQuiz} />
+                  </div>
+                  <DialogFooter className="flex-col sm:flex-row gap-2">
+                    <Button variant="outline" onClick={() => setIsImportQuizOpen(false)} className="sm:order-1 order-2">
+                      Cancel
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
             
-            <Dialog open={isCreateQuizOpen} onOpenChange={setIsCreateQuizOpen}>
-              <DialogTrigger asChild>
-                <Button className="flex-1 sm:flex-initial">
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  <span>Create Quiz</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[95vw] max-w-md sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Create New Quiz</DialogTitle>
-                  <DialogDescription>Add details for your custom quiz</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="title">Title</Label>
-                    <Input 
-                      id="title" 
-                      placeholder="Quiz title" 
-                      value={newQuiz.title || ""}
-                      onChange={(e) => setNewQuiz({...newQuiz, title: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea 
-                      id="description" 
-                      placeholder="Quiz description" 
-                      value={newQuiz.description || ""}
-                      onChange={(e) => setNewQuiz({...newQuiz, description: e.target.value})}
-                      className="min-h-20"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {createQuiz && (
+              <Dialog open={isCreateQuizOpen} onOpenChange={setIsCreateQuizOpen}>
+                <DialogTrigger asChild>
+                  <Button className="flex-1 sm:flex-initial">
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    <span>Create Quiz</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[95vw] max-w-md sm:max-w-[600px]">
+                  <DialogHeader>
+                    <DialogTitle>Create New Quiz</DialogTitle>
+                    <DialogDescription>Add details for your custom quiz</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="category">Category</Label>
+                      <Label htmlFor="title">Title</Label>
                       <Input 
-                        id="category" 
-                        placeholder="e.g. JavaScript" 
-                        value={newQuiz.category || ""}
-                        onChange={(e) => setNewQuiz({...newQuiz, category: e.target.value})}
+                        id="title" 
+                        placeholder="Quiz title" 
+                        value={newQuiz.title || ""}
+                        onChange={(e) => setNewQuiz({...newQuiz, title: e.target.value})}
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="difficulty">Difficulty</Label>
-                      <Select 
-                        value={newQuiz.difficulty}
-                        onValueChange={(value: "beginner" | "intermediate" | "advanced") => 
-                          setNewQuiz({...newQuiz, difficulty: value})
-                        }
-                      >
-                        <SelectTrigger id="difficulty">
-                          <SelectValue placeholder="Select difficulty" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="beginner">Beginner</SelectItem>
-                          <SelectItem value="intermediate">Intermediate</SelectItem>
-                          <SelectItem value="advanced">Advanced</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea 
+                        id="description" 
+                        placeholder="Quiz description" 
+                        value={newQuiz.description || ""}
+                        onChange={(e) => setNewQuiz({...newQuiz, description: e.target.value})}
+                        className="min-h-20"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="category">Category</Label>
+                        <Input 
+                          id="category" 
+                          placeholder="e.g. JavaScript" 
+                          value={newQuiz.category || ""}
+                          onChange={(e) => setNewQuiz({...newQuiz, category: e.target.value})}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="difficulty">Difficulty</Label>
+                        <Select 
+                          value={newQuiz.difficulty}
+                          onValueChange={(value: "beginner" | "intermediate" | "advanced") => 
+                            setNewQuiz({...newQuiz, difficulty: value})
+                          }
+                        >
+                          <SelectTrigger id="difficulty">
+                            <SelectValue placeholder="Select difficulty" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="beginner">Beginner</SelectItem>
+                            <SelectItem value="intermediate">Intermediate</SelectItem>
+                            <SelectItem value="advanced">Advanced</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label>Questions (Coming soon)</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Quiz question editor is currently under development. 
+                        For now, you can create quizzes using the AI generation feature.
+                      </p>
                     </div>
                   </div>
-                  
-                  <div className="grid gap-2">
-                    <Label>Questions (Coming soon)</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Quiz question editor is currently under development. 
-                      For now, you can create quizzes using the AI generation feature.
-                    </p>
-                  </div>
-                </div>
-                <DialogFooter className="flex-col sm:flex-row gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsCreateQuizOpen(false)} 
-                    className="sm:order-1 order-2"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleCreateQuiz} 
-                    disabled={!newQuiz.title}
-                    className="sm:order-2 order-1"
-                  >
-                    Save Quiz
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  <DialogFooter className="flex-col sm:flex-row gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsCreateQuizOpen(false)} 
+                      className="sm:order-1 order-2"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCreateQuiz} 
+                      disabled={!newQuiz.title}
+                      className="sm:order-2 order-1"
+                    >
+                      Save Quiz
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </div>
 
@@ -567,109 +575,111 @@ export function QuizManager() {
         </div>
       </TabsContent>
 
-      <TabsContent value="generate" className="space-y-4 sm:space-y-6">
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl">Generate Quiz with AI</CardTitle>
-            <CardDescription>
-              Create a new quiz by providing a topic or code snippet for the AI to analyze
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="topic">Topic</Label>
-              <Input
-                id="topic"
-                placeholder="e.g. React Hooks, JavaScript Promises..."
-                value={generationTopic}
-                onChange={(e) => setGenerationTopic(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="code-input">Or paste code for analysis</Label>
-              <Textarea
-                id="code-input"
-                placeholder="// Paste code here"
-                className="font-mono min-h-[150px] sm:min-h-[200px]"
-                value={generationCode}
-                onChange={(e) => setGenerationCode(e.target.value)}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {generateQuiz && (
+        <TabsContent value="generate" className="space-y-4 sm:space-y-6">
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl">Generate Quiz with AI</CardTitle>
+              <CardDescription>
+                Create a new quiz by providing a topic or code snippet for the AI to analyze
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="difficulty">Difficulty Level</Label>
-                <Select 
-                  value={generationDifficulty}
-                  onValueChange={setGenerationDifficulty}
-                >
-                  <SelectTrigger id="difficulty">
-                    <SelectValue placeholder="Select difficulty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                    <SelectItem value="advanced">Advanced</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="topic">Topic</Label>
+                <Input
+                  id="topic"
+                  placeholder="e.g. React Hooks, JavaScript Promises..."
+                  value={generationTopic}
+                  onChange={(e) => setGenerationTopic(e.target.value)}
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="questions">Number of Questions</Label>
-                <Select 
-                  value={generationQuestions}
-                  onValueChange={setGenerationQuestions}
-                >
-                  <SelectTrigger id="questions">
-                    <SelectValue placeholder="Select number" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="5">5 Questions</SelectItem>
-                    <SelectItem value="10">10 Questions</SelectItem>
-                    <SelectItem value="15">15 Questions</SelectItem>
-                    <SelectItem value="20">20 Questions</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="code-input">Or paste code for analysis</Label>
+                <Textarea
+                  id="code-input"
+                  placeholder="// Paste code here"
+                  className="font-mono min-h-[150px] sm:min-h-[200px]"
+                  value={generationCode}
+                  onChange={(e) => setGenerationCode(e.target.value)}
+                />
               </div>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button
-              onClick={handleGenerateQuiz}
-              disabled={generatingQuiz || (!generationTopic && !generationCode)}
-              className="w-full"
-            >
-              {generatingQuiz ? (
-                <>
-                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                  Generating Quiz...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Generate Quiz
-                </>
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Quiz Generation Tips</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="list-disc pl-5 space-y-1 text-sm">
-              <li>Be specific with your topic to get more targeted questions</li>
-              <li>For code-based quizzes, include enough code to demonstrate concepts</li>
-              <li>Mix difficulty levels for a more comprehensive learning experience</li>
-              <li>Generated quizzes can be exported and shared with others</li>
-              <li>You can combine a topic and code for context-aware questions</li>
-            </ul>
-          </CardContent>
-        </Card>
-      </TabsContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="difficulty">Difficulty Level</Label>
+                  <Select 
+                    value={generationDifficulty}
+                    onValueChange={setGenerationDifficulty}
+                  >
+                    <SelectTrigger id="difficulty">
+                      <SelectValue placeholder="Select difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="questions">Number of Questions</Label>
+                  <Select 
+                    value={generationQuestions}
+                    onValueChange={setGenerationQuestions}
+                  >
+                    <SelectTrigger id="questions">
+                      <SelectValue placeholder="Select number" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 Questions</SelectItem>
+                      <SelectItem value="10">10 Questions</SelectItem>
+                      <SelectItem value="15">15 Questions</SelectItem>
+                      <SelectItem value="20">20 Questions</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button
+                onClick={handleGenerateQuiz}
+                disabled={generatingQuiz || (!generationTopic && !generationCode)}
+                className="w-full"
+              >
+                {generatingQuiz ? (
+                  <>
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                    Generating Quiz...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate Quiz
+                  </>
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Quiz Generation Tips</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="list-disc pl-5 space-y-1 text-sm">
+                <li>Be specific with your topic to get more targeted questions</li>
+                <li>For code-based quizzes, include enough code to demonstrate concepts</li>
+                <li>Mix difficulty levels for a more comprehensive learning experience</li>
+                <li>Generated quizzes can be exported and shared with others</li>
+                <li>You can combine a topic and code for context-aware questions</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      )}
 
       <Dialog open={!!viewingQuiz} onOpenChange={(open) => !open && setViewingQuiz(null)}>
         <DialogContent className="w-[95vw] sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">

@@ -41,11 +41,13 @@ import Link from "next/link"
 import { useSnippetStore, Snippet } from "@/store/snippetStore"
 import { useRouter } from "next/navigation"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useFeatureFlags } from "@/providers/FeatureFlagProvider"
 
 const DEFAULT_FOLDERS = ["React", "TypeScript", "Node.js", "CSS", "Python", "Algorithms", "Unsorted"]
 
 export function SnippetsManager() {
   const router = useRouter()
+  const { importSnippetFromClipboard } = useFeatureFlags()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterFolder, setFilterFolder] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -296,10 +298,12 @@ export function SnippetsManager() {
                 New Snippet
               </Button>
 
-              <Button variant="outline" className="w-full justify-start" onClick={importFromClipboard}>
-                <Clipboard className="h-4 w-4 mr-2" />
-                Import from Clipboard
-              </Button>
+              {importSnippetFromClipboard && (
+                <Button variant="outline" className="w-full justify-start" onClick={importFromClipboard}>
+                  <Clipboard className="h-4 w-4 mr-2" />
+                  Import from Clipboard
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
@@ -350,14 +354,16 @@ export function SnippetsManager() {
           </CardHeader>
           <CardContent className="space-y-2">
             <Button variant="outline" className="w-full justify-start" onClick={() => setIsAddDialogOpen(true)}>
-              <PlusCircle className="h-4 w-4" />
+              <PlusCircle className="h-4 w-4 mr-2" />
               New Snippet
             </Button>
 
-            <Button variant="outline" className="w-full justify-start overflow-ellipsis" onClick={importFromClipboard}>
-              <Clipboard className="h-4 w-4" />
-              Clipboard Im..
-            </Button>
+            {importSnippetFromClipboard && (
+              <Button variant="outline" className="w-full justify-start overflow-ellipsis" onClick={importFromClipboard}>
+                <Clipboard className="h-4 w-4 mr-2" />
+                Clipboard Im..
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>

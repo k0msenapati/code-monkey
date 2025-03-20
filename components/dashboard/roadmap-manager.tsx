@@ -1,21 +1,7 @@
 "use client"
 
-import { DialogTrigger } from "@/components/ui/dialog"
-
 import { useState } from "react"
-import {
-  PlusCircle,
-  Edit,
-  Trash,
-  ChevronRight,
-  Search,
-  MapPin,
-  Target,
-  BookOpen,
-  Clock,
-  Sparkles,
-  AlertCircle,
-} from "lucide-react"
+import { PlusCircle, Search, AlertCircle, Sparkles, Target, Clock, BookOpen, MapPin, ChevronRight, Edit, Trash } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -28,10 +14,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { useFeatureFlags } from "@/providers/FeatureFlagProvider"
+import { Badge } from "../ui/badge"
 import Link from "next/link"
 
 type Roadmap = {
@@ -196,6 +184,7 @@ const dummyRoadmaps: Roadmap[] = [
 ]
 
 export function RoadmapManager() {
+  const { generateRoadmap } = useFeatureFlags()
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>(dummyRoadmaps)
   const [searchTerm, setSearchTerm] = useState("")
   const [generatingRoadmap, setGeneratingRoadmap] = useState(false)
@@ -294,7 +283,9 @@ export function RoadmapManager() {
     <Tabs defaultValue="my-roadmaps">
       <TabsList className="grid w-full grid-cols-2 mb-6">
         <TabsTrigger value="my-roadmaps">My Roadmaps</TabsTrigger>
-        <TabsTrigger value="generate">Generate Roadmap</TabsTrigger>
+        {generateRoadmap && (
+          <TabsTrigger value="generate">Generate Roadmap</TabsTrigger>
+        )}
       </TabsList>
 
       <TabsContent value="my-roadmaps" className="space-y-4">
@@ -392,103 +383,104 @@ export function RoadmapManager() {
         )}
       </TabsContent>
 
-      <TabsContent value="generate" className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Generate Learning Roadmap with AI</CardTitle>
-            <CardDescription>Let AI create a personalized learning path based on your goals</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Target className="h-4 w-4 text-primary" />
-                <Label htmlFor="goal">What do you want to learn?</Label>
+      {generateRoadmap && (
+        <TabsContent value="generate" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Generate Learning Roadmap with AI</CardTitle>
+              <CardDescription>Let AI create a personalized learning path based on your goals</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Target className="h-4 w-4 text-primary" />
+                  <Label htmlFor="goal">What do you want to learn?</Label>
+                </div>
+                <Textarea
+                  id="goal"
+                  placeholder="E.g., 'Master React development' or 'Learn cloud computing with AWS'"
+                  value={goalInput}
+                  onChange={(e) => setGoalInput(e.target.value)}
+                />
               </div>
-              <Textarea
-                id="goal"
-                placeholder="E.g., 'Master React development' or 'Learn cloud computing with AWS'"
-                value={goalInput}
-                onChange={(e) => setGoalInput(e.target.value)}
-              />
-            </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-primary" />
-                <Label htmlFor="timeframe">Timeframe (optional)</Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <Label htmlFor="timeframe">Timeframe (optional)</Label>
+                </div>
+                <Input
+                  id="timeframe"
+                  placeholder="E.g., '3 months' or 'By end of year'"
+                  value={timeframeInput}
+                  onChange={(e) => setTimeframeInput(e.target.value)}
+                />
               </div>
-              <Input
-                id="timeframe"
-                placeholder="E.g., '3 months' or 'By end of year'"
-                value={timeframeInput}
-                onChange={(e) => setTimeframeInput(e.target.value)}
-              />
-            </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <BookOpen className="h-4 w-4 text-primary" />
-                <Label htmlFor="prior-knowledge">Prior Knowledge (optional)</Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                  <Label htmlFor="prior-knowledge">Prior Knowledge (optional)</Label>
+                </div>
+                <Textarea
+                  id="prior-knowledge"
+                  placeholder="What do you already know about this topic?"
+                  value={priorKnowledgeInput}
+                  onChange={(e) => setPriorKnowledgeInput(e.target.value)}
+                />
               </div>
-              <Textarea
-                id="prior-knowledge"
-                placeholder="What do you already know about this topic?"
-                value={priorKnowledgeInput}
-                onChange={(e) => setPriorKnowledgeInput(e.target.value)}
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button onClick={handleGenerateRoadmap} disabled={generatingRoadmap || !goalInput} className="w-full">
-              {generatingRoadmap ? (
-                <>
-                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                  Generating Roadmap...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Generate Roadmap
-                </>
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={handleGenerateRoadmap} disabled={generatingRoadmap || !goalInput} className="w-full">
+                {generatingRoadmap ? (
+                  <>
+                    Generating Roadmap...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate Roadmap
+                  </>
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Roadmap Examples</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center p-3 rounded-md border hover:bg-secondary/50 cursor-pointer transition-colors">
-              <MapPin className="h-5 w-5 text-primary mr-3" />
-              <div>
-                <p className="font-medium">Frontend Development Mastery</p>
-                <p className="text-sm text-muted-foreground">From basics to advanced React techniques</p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Roadmap Examples</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center p-3 rounded-md border hover:bg-secondary/50 cursor-pointer transition-colors">
+                <MapPin className="h-5 w-5 text-primary mr-3" />
+                <div>
+                  <p className="font-medium">Frontend Development Mastery</p>
+                  <p className="text-sm text-muted-foreground">From basics to advanced React techniques</p>
+                </div>
+                <ChevronRight className="h-4 w-4 ml-auto text-muted-foreground" />
               </div>
-              <ChevronRight className="h-4 w-4 ml-auto text-muted-foreground" />
-            </div>
 
-            <div className="flex items-center p-3 rounded-md border hover:bg-secondary/50 cursor-pointer transition-colors">
-              <MapPin className="h-5 w-5 text-primary mr-3" />
-              <div>
-                <p className="font-medium">Python Data Science</p>
-                <p className="text-sm text-muted-foreground">Journey from programming to ML models</p>
+              <div className="flex items-center p-3 rounded-md border hover:bg-secondary/50 cursor-pointer transition-colors">
+                <MapPin className="h-5 w-5 text-primary mr-3" />
+                <div>
+                  <p className="font-medium">Python Data Science</p>
+                  <p className="text-sm text-muted-foreground">Journey from programming to ML models</p>
+                </div>
+                <ChevronRight className="h-4 w-4 ml-auto text-muted-foreground" />
               </div>
-              <ChevronRight className="h-4 w-4 ml-auto text-muted-foreground" />
-            </div>
 
-            <div className="flex items-center p-3 rounded-md border hover:bg-secondary/50 cursor-pointer transition-colors">
-              <MapPin className="h-5 w-5 text-primary mr-3" />
-              <div>
-                <p className="font-medium">DevOps Engineering</p>
-                <p className="text-sm text-muted-foreground">Build, test, and deploy applications at scale</p>
+              <div className="flex items-center p-3 rounded-md border hover:bg-secondary/50 cursor-pointer transition-colors">
+                <MapPin className="h-5 w-5 text-primary mr-3" />
+                <div>
+                  <p className="font-medium">DevOps Engineering</p>
+                  <p className="text-sm text-muted-foreground">Build, test, and deploy applications at scale</p>
+                </div>
+                <ChevronRight className="h-4 w-4 ml-auto text-muted-foreground" />
               </div>
-              <ChevronRight className="h-4 w-4 ml-auto text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      )}
     </Tabs>
   )
 }

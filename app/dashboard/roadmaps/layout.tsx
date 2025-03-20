@@ -6,7 +6,7 @@ export default function RoadmapsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <FeatureGuard featureName="generateRoadmap">
+    <FeatureGuard featureName="generateRoadmap" refreshInterval={1000 * 60 * 5}>
       {children}
     </FeatureGuard>
   );
