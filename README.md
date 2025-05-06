@@ -69,8 +69,8 @@ bun dev
         </a>
       </td>
       <td align="center" valign="top" width="14.28%">
-        <a href="https://github.com/kom-senapati">
-          <img src="https://github.com/kom-senapati.png?s=100" width="130px;" alt="K Om Senapati"/>
+        <a href="https://github.com/k0msenapati">
+          <img src="https://github.com/k0msenapati.png?s=100" width="130px;" alt="K Om Senapati"/>
           <br />
           <b>K Om Senapati</b>
           <br />
